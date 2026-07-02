@@ -30,7 +30,7 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 
 - [x] Add kettle/stove art.
 - [x] Add steam animation.
-- [ ] Add customer queue visuals.
+- [x] Add customer queue visuals.
 - [ ] Add UPI QR prop.
 - [ ] Add location-specific backgrounds.
 - [ ] Add button press sounds.
