@@ -248,6 +248,7 @@ namespace ChaiEmpire
             CreateArtShape("Back Wall Glow", art.transform, new Vector2(0, 28), new Vector2(820, 250), new Color(1f, 0.91f, 0.68f), GetCircleSprite(), 0);
             CreateArtShape("Counter Top", art.transform, new Vector2(0, -124), new Vector2(900, 56), counter, null, 0);
             CreateArtShape("Counter Front", art.transform, new Vector2(0, -160), new Vector2(860, 58), new Color(0.48f, 0.25f, 0.13f), null, 0);
+            CreateCustomerQueue(art.transform);
 
             CreateArtShape("Stove Shadow", art.transform, new Vector2(0, -82), new Vector2(360, 54), new Color(0.09f, 0.10f, 0.10f, 0.35f), GetCircleSprite(), 0);
             CreateArtShape("Stove Base", art.transform, new Vector2(0, -64), new Vector2(360, 116), stove, null, 0);
@@ -268,6 +269,23 @@ namespace ChaiEmpire
             CreateSteamWisp("Steam Wisp A", art.transform, new Vector2(-52, 214), new Vector2(34, 78), 0f);
             CreateSteamWisp("Steam Wisp B", art.transform, new Vector2(6, 224), new Vector2(28, 88), 0.85f);
             CreateSteamWisp("Steam Wisp C", art.transform, new Vector2(62, 210), new Vector2(30, 72), 1.7f);
+        }
+
+        private void CreateCustomerQueue(Transform parent)
+        {
+            CreateArtShape("Customer Queue Shadow", parent, new Vector2(350, -118), new Vector2(248, 30), new Color(0.16f, 0.08f, 0.04f, 0.22f), GetCircleSprite(), 0);
+            CreateCustomer("Queue Customer A", parent, new Vector2(274, -52), new Color(0.18f, 0.50f, 0.31f), 0.92f);
+            CreateCustomer("Queue Customer B", parent, new Vector2(350, -40), new Color(0.93f, 0.43f, 0.16f), 1f);
+            CreateCustomer("Queue Customer C", parent, new Vector2(424, -58), new Color(0.65f, 0.17f, 0.27f), 0.84f);
+        }
+
+        private void CreateCustomer(string prefix, Transform parent, Vector2 basePosition, Color shirt, float scale)
+        {
+            Color skin = new Color(0.67f, 0.42f, 0.25f);
+            Color hair = new Color(0.10f, 0.07f, 0.05f);
+            CreateArtShape(prefix + " Body", parent, basePosition + new Vector2(0, -38 * scale), new Vector2(58 * scale, 88 * scale), shirt, GetCircleSprite(), 0);
+            CreateArtShape(prefix + " Head", parent, basePosition + new Vector2(0, 20 * scale), new Vector2(46 * scale, 46 * scale), skin, GetCircleSprite(), 0);
+            CreateArtShape(prefix + " Hair", parent, basePosition + new Vector2(0, 36 * scale), new Vector2(50 * scale, 22 * scale), hair, GetCircleSprite(), 0);
         }
 
         private void BuildStats(Transform parent)
