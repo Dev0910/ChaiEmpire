@@ -156,6 +156,30 @@ Run this after UI changes:
 - Save still occurs on pause.
 - Scroll view works on smaller screens.
 
+## Phase 2 Visual Identity Verification
+
+Latest Phase 2 verification:
+
+```text
+EditMode: passed=18, failed=0, skipped=0
+Visual identity smoke: passed
+Final compile/import: UnityExitCode=0
+```
+
+The visual identity smoke verifies:
+
+- Kettle/stove art objects exist.
+- Steam wisps animate upward.
+- Customer queue and UPI QR prop objects exist.
+- Button, purchase, and unlock audio clips are generated.
+- Haptics toggle switches on and off.
+- Stall backdrop changes after a location unlock.
+
+Known log noise:
+
+- Unity licensing handshake/access-token errors in batchmode.
+- `Curl error 42` during shutdown.
+
 ## Android Device Checklist
 
 Test on real device before release:
