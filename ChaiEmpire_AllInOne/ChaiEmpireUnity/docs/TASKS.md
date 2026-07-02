@@ -60,12 +60,12 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 
 ## Phase 5: Events And Live Content
 
-- [ ] Add event state.
-- [ ] Add event multipliers or temporary upgrades.
-- [ ] Add event UI panel.
-- [ ] Add event save fields.
-- [ ] Add event tests.
-- [ ] Run tests/play checks, inspect logs, update docs, commit, and push.
+- [x] Add event state.
+- [x] Add event multipliers or temporary upgrades.
+- [x] Add event UI panel.
+- [x] Add event save fields.
+- [x] Add event tests.
+- [x] Run tests/play checks, inspect logs, update docs, commit, and push.
 
 ## Phase 6: Monetization-Safe Options
 
