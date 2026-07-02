@@ -99,6 +99,7 @@ Current scene can keep the same `Chai Empire App` root and `ChaiGamePresenter` d
 | `LocationListView` | Renders location cards and unlock states. | `ChaiContent.Locations`, `TryUnlockLocation`. |
 | `LocationCardView` | One location row/card. | `LocationDefinition`, unlocked/affordable state. |
 | `PrestigePreviewView` | Shows current Secret Masala preview only. | `ChaiGame.GetPrestigePreview()`. |
+| `SettingsView` | Shows local save controls. | `ChaiSaveRepository.DeleteSave()`. |
 | `OfflineRewardModalView` | Shows return reward and claim button. | `LoadResult.OfflineReward`. |
 | `UpgradeDetailModalView` | Planned detail view for secondary upgrade info. | `UpgradeDefinition`, computed cost. |
 | `ToastStatusView` | Shows short action feedback. | UI events. |
@@ -196,7 +197,7 @@ Current runtime implementation uses `ChaiTutorial` to derive guidance from game 
 
 ### Offline Reward Modal
 
-Current code shows offline reward as status text. The wireframe proposes a future modal.
+Current code shows the offline reward in a modal overlay and also posts a short return status.
 
 Fields:
 
@@ -274,7 +275,7 @@ Rules:
 ### Prestige Preview Locked
 
 - Show Secret Masala as locked until Airport Lounge and `1B` lifetime rupees are reached.
-- Do not show a working reset button before prestige implementation.
+- Keep prestige reset separate from the Settings save wipe. Settings reset is a two-step local save delete, not a prestige action.
 - Keep wording aspirational and clear.
 
 ## Data Binding Map

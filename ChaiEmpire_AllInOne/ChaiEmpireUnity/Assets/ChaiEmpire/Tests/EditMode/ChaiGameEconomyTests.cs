@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using BreakInfinity;
 using NUnit.Framework;
@@ -59,6 +60,113 @@ namespace ChaiEmpire.Tests
             Assert.That(reward.WasCapped, Is.True);
             Assert.That(reward.RupeesEarned.ToDouble(), Is.EqualTo(54000d).Within(0.001d));
             Assert.That(game.State.Rupees.ToDouble(), Is.EqualTo(54370d).Within(0.001d));
+        }
+
+        [Test]
+        public void Early_balance_reaches_first_upgrade_and_first_automation_in_target_window()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            const double CasualSecondsPerTap = 6d;
+
+            double elapsedSeconds = 0;
+            double? firstUpgradeSeconds = null;
+            double? firstAutomationSeconds = null;
+
+            while (elapsedSeconds < 300d && !firstAutomationSeconds.HasValue)
+            {
+                game.TapKettle();
+                elapsedSeconds += CasualSecondsPerTap;
+
+                if (!firstUpgradeSeconds.HasValue && game.TryBuyUpgrade("strong-tea"))
+                {
+                    firstUpgradeSeconds = elapsedSeconds;
+                    continue;
+                }
+
+                if (game.State.GetUpgradeLevel("strong-tea") > 0 && game.TryBuyUpgrade("helper-boy"))
+                {
+                    firstAutomationSeconds = elapsedSeconds;
+                }
+            }
+
+            Assert.That(firstUpgradeSeconds.HasValue, Is.True);
+            Assert.That(firstUpgradeSeconds.Value, Is.LessThanOrEqualTo(60d));
+            Assert.That(firstAutomationSeconds.HasValue, Is.True);
+            Assert.That(firstAutomationSeconds.Value, Is.InRange(180d, 300d));
+            Assert.That(game.GetPassiveRupeesPerSecond().ToDouble(), Is.EqualTo(0.5d).Within(0.001d));
+        }
+
+        [Test]
+        public void Number_formatter_outputs_readable_rupees_suffixes_rates_and_large_fallback()
+        {
+            Assert.That(ChaiNumberFormatter.Compact(new BigDouble(999.5)), Is.EqualTo("999.5"));
+            Assert.That(ChaiNumberFormatter.Rupees(new BigDouble(1500)), Is.EqualTo("Rs 1.5K"));
+            Assert.That(ChaiNumberFormatter.Compact(new BigDouble(-2500000)), Is.EqualTo("-2.5M"));
+            Assert.That(ChaiNumberFormatter.PerSecond(new BigDouble(12.5)), Is.EqualTo("Rs 12.5/sec"));
+            Assert.That(ChaiNumberFormatter.Compact(new BigDouble(1.234, 39)), Is.EqualTo("1.234e39"));
+        }
+
+        [Test]
+        public void Default_upgrade_catalog_has_unique_valid_progression_values()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            HashSet<string> ids = new HashSet<string>();
+            bool hasAutomation = false;
+
+            foreach (UpgradeDefinition upgrade in content.Upgrades)
+            {
+                Assert.That(upgrade.Id, Is.Not.Empty);
+                Assert.That(ids.Add(upgrade.Id), Is.True, "Duplicate upgrade id: " + upgrade.Id);
+                Assert.That(upgrade.DisplayName, Is.Not.Empty);
+                Assert.That(upgrade.Category, Is.Not.Empty);
+                Assert.That(upgrade.BaseCost > BigDouble.Zero, Is.True, upgrade.Id);
+                Assert.That(upgrade.CostMultiplier, Is.GreaterThan(1d), upgrade.Id);
+                Assert.That(upgrade.ValuePerLevel, Is.GreaterThan(0d), upgrade.Id);
+
+                if (upgrade.IsAutomation)
+                {
+                    hasAutomation = true;
+                    Assert.That(upgrade.Kind, Is.EqualTo(UpgradeKind.PassiveFlat), upgrade.Id);
+                }
+            }
+
+            Assert.That(hasAutomation, Is.True);
+        }
+
+        [Test]
+        public void Default_location_catalog_has_one_start_and_ordered_unlock_progression()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            HashSet<string> ids = new HashSet<string>();
+            BigDouble previousCost = new BigDouble(-1);
+            double previousDemand = 0;
+            int defaultCount = 0;
+            string defaultLocationId = string.Empty;
+
+            foreach (LocationDefinition location in content.Locations)
+            {
+                Assert.That(location.Id, Is.Not.Empty);
+                Assert.That(ids.Add(location.Id), Is.True, "Duplicate location id: " + location.Id);
+                Assert.That(location.DisplayName, Is.Not.Empty);
+                Assert.That(location.UnlockCost >= BigDouble.Zero, Is.True, location.Id);
+                Assert.That(location.DemandMultiplier, Is.GreaterThanOrEqualTo(1d), location.Id);
+                Assert.That(location.UnlockCost >= previousCost, Is.True, location.Id);
+                Assert.That(location.DemandMultiplier >= previousDemand, Is.True, location.Id);
+
+                if (location.UnlockedByDefault)
+                {
+                    defaultCount++;
+                    defaultLocationId = location.Id;
+                    Assert.That(location.UnlockCost == BigDouble.Zero, Is.True);
+                }
+
+                previousCost = location.UnlockCost;
+                previousDemand = location.DemandMultiplier;
+            }
+
+            Assert.That(defaultCount, Is.EqualTo(1));
+            Assert.That(defaultLocationId, Is.EqualTo("gali-tapri"));
         }
 
         [Test]
@@ -170,6 +278,25 @@ namespace ChaiEmpire.Tests
                 Assert.That(result.HasOfflineReward, Is.False);
                 Assert.That(result.State.Rupees.ToDouble(), Is.EqualTo(250d).Within(0.001d));
                 Assert.That(result.State.LastSavedUtcTicks, Is.InRange(1, DateTime.MaxValue.Ticks));
+            }
+            finally
+            {
+                DeleteTempSaveDirectory(savePath);
+            }
+        }
+
+        [Test]
+        public void Repository_delete_save_removes_existing_file_and_tolerates_missing_file()
+        {
+            string savePath = CreateTempSavePath();
+
+            try
+            {
+                File.WriteAllText(savePath, "{\"saveVersion\":1}");
+
+                Assert.That(ChaiSaveRepository.DeleteSave(savePath), Is.True);
+                Assert.That(File.Exists(savePath), Is.False);
+                Assert.That(ChaiSaveRepository.DeleteSave(savePath), Is.True);
             }
             finally
             {

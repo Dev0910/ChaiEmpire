@@ -52,6 +52,33 @@ namespace ChaiEmpire
             File.WriteAllText(path, ChaiSaveCodec.ToJson(state));
         }
 
+        public static bool DeleteSave()
+        {
+            return DeleteSave(GetSavePath());
+        }
+
+        public static bool DeleteSave(string path)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    return false;
+                }
+
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+
+                return true;
+            }
+            catch (Exception exception) when (IsRecoverableFileException(exception))
+            {
+                return false;
+            }
+        }
+
         public static string GetSavePath()
         {
             return Path.Combine(Application.persistentDataPath, SaveFileName);

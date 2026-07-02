@@ -111,6 +111,21 @@ Guided states:
 
 The tutorial hides after the first `Strong Tea Leaves` purchase. It is derived from current game state and does not add save fields.
 
+### Offline Reward Modal
+
+Shown on launch only when `LoadResult.HasOfflineReward` is true.
+
+Fields:
+
+| Field | Text source |
+| --- | --- |
+| Reward amount | `LoadResult.OfflineReward.RupeesEarned` |
+| Away time | `OfflineReward.RawSeconds` |
+| Efficiency | `ChaiContent.OfflineEfficiency` |
+| Cap | `OfflineReward.CappedSeconds` or `ChaiContent.OfflineCapSeconds` |
+
+The `Claim` button only dismisses the modal; the reward has already been applied during load.
+
 ### Upgrades
 
 Shows all current upgrades.
@@ -149,6 +164,16 @@ Shows:
 
 Current prestige is preview-only.
 
+### Settings
+
+Current settings include a local save reset button.
+
+Reset behavior:
+
+1. First tap changes the button to `Confirm Reset`.
+2. Confirmation expires after 6 seconds.
+3. Second tap deletes the local save file, creates a fresh game state, saves it, and refreshes the UI.
+
 ## One-Thumb Interaction Rules
 
 Future UI should preserve:
@@ -171,8 +196,9 @@ Every important action should have immediate feedback.
 | Buy upgrade | Status message `<Upgrade> upgraded`. |
 | Unlock location | Status message `<Location> unlocked`. |
 | Trigger Rush Hour | Status message `Rush hour: 2x for 20 sec`. |
-| Return after offline reward | Status message `Welcome back: Rs <amount>`. |
+| Return after offline reward | Offline reward modal plus status message `Welcome back: Rs <amount>`. |
 | Tutorial primary tap | Same feedback as the action it performs. |
+| Reset save | Two-step confirmation and status message `Save reset`. |
 
 Future polish:
 

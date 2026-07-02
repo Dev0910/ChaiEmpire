@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BreakInfinity;
 using UnityEngine;
@@ -8,6 +9,8 @@ namespace ChaiEmpire
 {
     public sealed class ChaiGamePresenter : MonoBehaviour
     {
+        private const float ResetConfirmSeconds = 6f;
+
         private static readonly Color Background = new Color(0.05f, 0.16f, 0.17f);
         private static readonly Color Panel = new Color(0.96f, 0.93f, 0.84f);
         private static readonly Color Ink = new Color(0.08f, 0.11f, 0.12f);
@@ -34,13 +37,21 @@ namespace ChaiEmpire
         private Text tutorialProgressText;
         private Button tutorialPrimaryButton;
         private Text tutorialPrimaryLabel;
+        private GameObject offlineRewardModal;
+        private Text offlineRewardAmountText;
+        private Text offlineRewardDetailText;
+        private Text offlineRewardCapText;
         private Text rushText;
         private Text statusText;
         private Text prestigeText;
         private Button rushButton;
+        private Button resetSaveButton;
+        private Text resetSaveLabel;
         private float refreshTimer;
         private float saveTimer;
         private float statusTimer;
+        private float resetConfirmTimer;
+        private bool resetSaveArmed;
 
         private void Start()
         {
@@ -55,6 +66,7 @@ namespace ChaiEmpire
 
             if (loadResult.HasOfflineReward)
             {
+                ShowOfflineReward(loadResult.OfflineReward);
                 SetStatus("Welcome back: " + ChaiNumberFormatter.Rupees(loadResult.OfflineReward.RupeesEarned));
             }
             else
@@ -82,6 +94,16 @@ namespace ChaiEmpire
                 if (statusTimer <= 0)
                 {
                     statusText.text = string.Empty;
+                }
+            }
+
+            if (resetSaveArmed)
+            {
+                resetConfirmTimer -= Time.deltaTime;
+                if (resetConfirmTimer <= 0)
+                {
+                    resetSaveArmed = false;
+                    RefreshSettings();
                 }
             }
 
@@ -169,6 +191,8 @@ namespace ChaiEmpire
             BuildUpgradeList(contentObject.transform);
             BuildLocationList(contentObject.transform);
             BuildPrestige(contentObject.transform);
+            BuildSettings(contentObject.transform);
+            BuildOfflineRewardModal(canvas.transform);
         }
 
         private Canvas CreateCanvas()
@@ -233,6 +257,50 @@ namespace ChaiEmpire
             tutorialPrimaryButton = CreateButton("Tutorial Primary", tutorialPanel.transform, string.Empty, 24, Saffron, 64);
             tutorialPrimaryLabel = tutorialPrimaryButton.GetComponentInChildren<Text>();
             tutorialPrimaryButton.onClick.AddListener(HandleTutorialPrimary);
+        }
+
+        private void BuildOfflineRewardModal(Transform parent)
+        {
+            offlineRewardModal = CreateChild("Offline Reward Modal", parent);
+            RectTransform modalRect = offlineRewardModal.GetComponent<RectTransform>();
+            modalRect.anchorMin = Vector2.zero;
+            modalRect.anchorMax = Vector2.one;
+            modalRect.offsetMin = Vector2.zero;
+            modalRect.offsetMax = Vector2.zero;
+
+            Image scrim = offlineRewardModal.AddComponent<Image>();
+            scrim.color = new Color(0, 0, 0, 0.58f);
+
+            GameObject card = CreateChild("Offline Reward Card", offlineRewardModal.transform);
+            RectTransform cardRect = card.GetComponent<RectTransform>();
+            cardRect.anchorMin = new Vector2(0.5f, 0.5f);
+            cardRect.anchorMax = new Vector2(0.5f, 0.5f);
+            cardRect.pivot = new Vector2(0.5f, 0.5f);
+            cardRect.anchoredPosition = Vector2.zero;
+            cardRect.sizeDelta = new Vector2(860, 620);
+
+            Image cardImage = card.AddComponent<Image>();
+            cardImage.color = Panel;
+
+            VerticalLayoutGroup layout = card.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(42, 42, 38, 38);
+            layout.spacing = 18;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            Text title = CreateText("Offline Reward Title", card.transform, "Welcome Back", 42, Rose, TextAnchor.MiddleCenter);
+            title.fontStyle = FontStyle.Bold;
+            offlineRewardAmountText = CreateText("Offline Reward Amount", card.transform, string.Empty, 54, Ink, TextAnchor.MiddleCenter);
+            offlineRewardAmountText.fontStyle = FontStyle.Bold;
+            offlineRewardDetailText = CreateText("Offline Reward Detail", card.transform, string.Empty, 28, Ink, TextAnchor.MiddleCenter);
+            offlineRewardCapText = CreateText("Offline Reward Cap", card.transform, string.Empty, 24, Rose, TextAnchor.MiddleCenter);
+
+            Button claim = CreateButton("Claim Offline Reward", card.transform, "Claim", 30, Saffron, 82);
+            claim.onClick.AddListener(HideOfflineReward);
+
+            offlineRewardModal.SetActive(false);
         }
 
         private void BuildActions(Transform parent)
@@ -343,9 +411,25 @@ namespace ChaiEmpire
             statusText = CreateText("Status", section.transform, string.Empty, 24, Rose, TextAnchor.MiddleLeft);
         }
 
+        private void BuildSettings(Transform parent)
+        {
+            GameObject section = CreatePanel("Settings", parent, new Color(0.93f, 0.94f, 0.89f), 170);
+            VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(22, 22, 18, 18);
+            layout.spacing = 12;
+
+            Text title = CreateText("Settings Title", section.transform, "Settings", 34, Ink, TextAnchor.MiddleLeft);
+            title.fontStyle = FontStyle.Bold;
+
+            resetSaveButton = CreateButton("Reset Save", section.transform, "Reset Save", 24, Rose, 76);
+            resetSaveLabel = resetSaveButton.GetComponentInChildren<Text>();
+            resetSaveButton.onClick.AddListener(HandleResetSave);
+        }
+
         private void RefreshAll()
         {
             RefreshTutorial();
+            RefreshSettings();
 
             rupeesText.text = ChaiNumberFormatter.Rupees(game.State.Rupees);
             rateText.text = "Production  " + ChaiNumberFormatter.PerSecond(game.GetPassiveRupeesPerSecond());
@@ -417,6 +501,17 @@ namespace ChaiEmpire
             tutorialPrimaryLabel.text = prompt.PrimaryButtonLabel;
         }
 
+        private void RefreshSettings()
+        {
+            if (resetSaveButton == null)
+            {
+                return;
+            }
+
+            resetSaveLabel.text = resetSaveArmed ? "Confirm Reset" : "Reset Save";
+            SetButtonColor(resetSaveButton, resetSaveArmed ? Rose : Teal);
+        }
+
         private void HandleTutorialPrimary()
         {
             ChaiTutorialPrompt prompt = ChaiTutorial.GetPrompt(game.State, content);
@@ -437,6 +532,58 @@ namespace ChaiEmpire
             RefreshAll();
         }
 
+        private void HandleResetSave()
+        {
+            if (!resetSaveArmed)
+            {
+                resetSaveArmed = true;
+                resetConfirmTimer = ResetConfirmSeconds;
+                SetStatus("Tap Confirm Reset to clear this save");
+                RefreshSettings();
+                return;
+            }
+
+            resetSaveArmed = false;
+            resetConfirmTimer = 0;
+            HideOfflineReward();
+
+            if (ChaiSaveRepository.DeleteSave())
+            {
+                game = ChaiGame.NewGame(content);
+                ChaiSaveRepository.Save(game.State);
+                SetStatus("Save reset");
+            }
+            else
+            {
+                SetStatus("Save reset failed");
+            }
+
+            RefreshAll();
+        }
+
+        private void ShowOfflineReward(OfflineReward reward)
+        {
+            if (offlineRewardModal == null)
+            {
+                return;
+            }
+
+            offlineRewardAmountText.text = ChaiNumberFormatter.Rupees(reward.RupeesEarned);
+            offlineRewardDetailText.text = "Away " + FormatDuration(reward.RawSeconds) + "  |  Efficiency " + FormatPercent(content.OfflineEfficiency);
+            offlineRewardCapText.text = reward.WasCapped ?
+                "Capped at " + FormatDuration(reward.CappedSeconds) :
+                "Cap " + FormatDuration(content.OfflineCapSeconds);
+            offlineRewardModal.SetActive(true);
+        }
+
+        private void HideOfflineReward()
+        {
+            if (offlineRewardModal != null)
+            {
+                offlineRewardModal.SetActive(false);
+            }
+        }
+
         private string GetCurrentLocationName()
         {
             LocationDefinition current = content.Locations[0];
@@ -449,6 +596,27 @@ namespace ChaiEmpire
             }
 
             return current.DisplayName;
+        }
+
+        private static string FormatPercent(double value)
+        {
+            return (value * 100d).ToString("0") + "%";
+        }
+
+        private static string FormatDuration(double seconds)
+        {
+            double clampedSeconds = Math.Max(0, seconds);
+            if (clampedSeconds >= 3600)
+            {
+                return (clampedSeconds / 3600d).ToString("0.#") + "h";
+            }
+
+            if (clampedSeconds >= 60)
+            {
+                return (clampedSeconds / 60d).ToString("0.#") + "m";
+            }
+
+            return clampedSeconds.ToString("0") + "s";
         }
 
         private static string DescribeUpgrade(UpgradeDefinition upgrade)

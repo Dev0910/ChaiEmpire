@@ -46,6 +46,13 @@ chai-empire-save.json
 3. Sets `LastSavedUtcTicks` to current UTC ticks.
 4. Writes `ChaiSaveCodec.ToJson(state)` to disk.
 
+`ChaiSaveRepository.DeleteSave()`:
+
+1. Resolves the save path.
+2. Deletes `chai-empire-save.json` if it exists.
+3. Returns `true` when the file is gone or was already missing.
+4. Returns `false` for recoverable file-system failures.
+
 Current save triggers:
 
 | Trigger | Source |
@@ -195,6 +202,8 @@ Current constants:
 | Save has no passive upgrades | Reward is zero. | UI should avoid showing empty reward. |
 | Rush active when closing app | Rush is not included offline. | Keep. |
 | Malformed save JSON | Broken save is moved to a timestamped `.corrupt-*.bak`; player starts from a fresh state. | Consider an in-game recovery notice later. |
+
+When `LoadResult.HasOfflineReward` is true, the presenter shows an offline reward modal with reward amount, away time, efficiency, cap text, and a `Claim` dismiss button. The reward is applied before the modal is shown.
 
 ## Save Versioning Strategy
 
