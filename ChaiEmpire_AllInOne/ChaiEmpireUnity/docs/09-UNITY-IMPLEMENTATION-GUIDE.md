@@ -160,6 +160,10 @@ Keep these public methods stable if possible:
 | `ChaiGame.TryUnlockLocation(string id)` | Attempts location unlock. |
 | `ChaiGame.ApplyOfflineProgress(TimeSpan elapsed)` | Applies offline reward. |
 | `ChaiGame.GetPrestigePreview()` | Returns prestige readiness. |
+| `ChaiGame.TryPrestige(out PrestigeResult result)` | Confirms prestige, grants legacy/points, and resets the run. |
+| `ChaiGame.TrySpendSkillPoint(string skillId)` | Spends one skill point on a prestige skill. |
+| `ChaiGame.GetUpgradeCost(string upgradeId)` | Returns skill-adjusted upgrade cost. |
+| `ChaiGame.GetLocationUnlockCost(string locationId)` | Returns skill-adjusted location cost. |
 
 ## Content Expansion Steps
 
@@ -210,6 +214,7 @@ Current edit-mode tests validate:
 - Offline cap and reward formula.
 - Save round trip.
 - Prestige preview lock/unlock condition.
+- Prestige reset and skill effects.
 - JSON content parsing and validation.
 
 Use edit-mode tests for economy because they are fast and do not require scene loading.

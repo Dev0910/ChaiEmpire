@@ -213,6 +213,8 @@ namespace ChaiEmpire.Tests
             state.ChaiServed = new BigDouble(321);
             state.LastSavedUtcTicks = new DateTime(2026, 7, 3, 10, 30, 0, DateTimeKind.Utc).Ticks;
             state.Prestige.MasalaLegacy = new BigDouble(7);
+            state.Prestige.UnspentSkillPoints = 4;
+            state.Prestige.SetSkillLevel("brew-stronger-start", 2);
             state.SetUpgradeLevel("helper-boy", 3);
             state.SetUpgradeLevel("strong-tea", 2);
             state.UnlockLocation("railway-platform");
@@ -225,6 +227,8 @@ namespace ChaiEmpire.Tests
             Assert.That(restored.TotalLifetimeRupees.ToDouble(), Is.EqualTo(987654d).Within(0.001d));
             Assert.That(restored.ChaiServed.ToDouble(), Is.EqualTo(321d).Within(0.001d));
             Assert.That(restored.Prestige.MasalaLegacy.ToDouble(), Is.EqualTo(7d).Within(0.001d));
+            Assert.That(restored.Prestige.UnspentSkillPoints, Is.EqualTo(4));
+            Assert.That(restored.Prestige.GetSkillLevel("brew-stronger-start"), Is.EqualTo(2));
             Assert.That(restored.GetUpgradeLevel("helper-boy"), Is.EqualTo(3));
             Assert.That(restored.GetUpgradeLevel("strong-tea"), Is.EqualTo(2));
             Assert.That(restored.IsLocationUnlocked("railway-platform"), Is.True);
@@ -419,6 +423,87 @@ namespace ChaiEmpire.Tests
 
             Assert.That(unlocked.CanPrestige, Is.True);
             Assert.That(unlocked.ProjectedMasalaLegacy.ToDouble(), Is.GreaterThanOrEqualTo(10d));
+        }
+
+        [Test]
+        public void Prestige_reset_adds_legacy_points_and_preserves_skill_tree()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGameState state = ChaiGameState.CreateNew();
+            state.Rupees = new BigDouble(12345);
+            state.TotalLifetimeRupees = new BigDouble(1_000_000_000d);
+            state.ChaiServed = new BigDouble(777);
+            state.RushRemainingSeconds = 12;
+            state.RushCooldownSeconds = 45;
+            state.Prestige.MasalaLegacy = new BigDouble(5);
+            state.Prestige.UnspentSkillPoints = 2;
+            state.Prestige.SetSkillLevel("brew-stronger-start", 2);
+            state.SetUpgradeLevel("helper-boy", 3);
+            state.UnlockLocation("airport-lounge");
+            ChaiGame game = ChaiGame.FromState(content, state);
+
+            Assert.That(game.TryPrestige(out PrestigeResult result), Is.True);
+
+            Assert.That(result.GainedMasalaLegacy.ToDouble(), Is.EqualTo(10d).Within(0.001d));
+            Assert.That(result.GainedSkillPoints, Is.EqualTo(10));
+            Assert.That(game.State.Rupees.ToDouble(), Is.EqualTo(0d).Within(0.001d));
+            Assert.That(game.State.TotalLifetimeRupees.ToDouble(), Is.EqualTo(0d).Within(0.001d));
+            Assert.That(game.State.ChaiServed.ToDouble(), Is.EqualTo(0d).Within(0.001d));
+            Assert.That(game.State.GetUpgradeLevel("helper-boy"), Is.EqualTo(0));
+            Assert.That(game.State.IsLocationUnlocked("gali-tapri"), Is.True);
+            Assert.That(game.State.IsLocationUnlocked("airport-lounge"), Is.False);
+            Assert.That(game.State.RushRemainingSeconds, Is.EqualTo(0d).Within(0.001d));
+            Assert.That(game.State.RushCooldownSeconds, Is.EqualTo(0d).Within(0.001d));
+            Assert.That(game.State.Prestige.MasalaLegacy.ToDouble(), Is.EqualTo(15d).Within(0.001d));
+            Assert.That(game.State.Prestige.UnspentSkillPoints, Is.EqualTo(12));
+            Assert.That(game.State.Prestige.GetSkillLevel("brew-stronger-start"), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Prestige_skill_spending_applies_formula_and_cost_effects()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            game.State.Prestige.UnspentSkillPoints = 5;
+
+            Assert.That(game.TrySpendSkillPoint("brew-stronger-start"), Is.True);
+            Assert.That(game.TrySpendSkillPoint("ops-helper-training"), Is.True);
+            Assert.That(game.TrySpendSkillPoint("supply-bulk-buying"), Is.True);
+            Assert.That(game.TrySpendSkillPoint("brand-loyal-regulars"), Is.True);
+            Assert.That(game.TrySpendSkillPoint("expand-cheaper-locations"), Is.True);
+
+            Assert.That(game.State.Prestige.UnspentSkillPoints, Is.EqualTo(0));
+            Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(1.26d).Within(0.001d));
+            game.State.SetUpgradeLevel("helper-boy", 1);
+            Assert.That(game.GetPassiveRupeesPerSecond(includeRush: false).ToDouble(), Is.EqualTo(0.5775d).Within(0.001d));
+            Assert.That(game.GetUpgradeCost("strong-tea").ToDouble(), Is.EqualTo(9.8d).Within(0.001d));
+            Assert.That(game.GetLocationUnlockCost("bus-stand").ToDouble(), Is.EqualTo(242.5d).Within(0.001d));
+        }
+
+        [Test]
+        public void Prestige_offline_and_rush_skills_apply_to_timers_and_rewards()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            game.State.Prestige.UnspentSkillPoints = 4;
+
+            Assert.That(game.TrySpendSkillPoint("supply-offline-flask"), Is.True);
+            Assert.That(game.TrySpendSkillPoint("supply-long-storage"), Is.True);
+            Assert.That(game.TrySpendSkillPoint("ops-fast-rush"), Is.True);
+            Assert.That(game.TrySpendSkillPoint("brew-rush-taps"), Is.True);
+
+            game.State.SetUpgradeLevel("helper-boy", 1);
+            OfflineReward reward = game.ApplyOfflineProgress(TimeSpan.FromHours(10));
+
+            Assert.That(game.GetOfflineEfficiency(), Is.EqualTo(0.8d).Within(0.001d));
+            Assert.That(game.GetOfflineCapSeconds(), Is.EqualTo(32400d).Within(0.001d));
+            Assert.That(reward.CappedSeconds, Is.EqualTo(32400d).Within(0.001d));
+            Assert.That(reward.RupeesEarned.ToDouble(), Is.EqualTo(12960d).Within(0.001d));
+
+            game.State.RushCooldownSeconds = 0;
+            Assert.That(game.TryTriggerRushHour(), Is.True);
+            Assert.That(game.State.RushCooldownSeconds, Is.EqualTo(85d).Within(0.001d));
+            Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(2.2d).Within(0.001d));
         }
 
         private static string CreateTempSavePath()

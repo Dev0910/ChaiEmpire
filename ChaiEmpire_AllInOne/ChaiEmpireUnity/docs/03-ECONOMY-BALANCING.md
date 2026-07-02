@@ -74,7 +74,7 @@ globalMultiplier = 1 + sum(GlobalMultiplier.valuePerLevel * level)
 legacyMultiplier = 1 + MasalaLegacy * 0.01
 ```
 
-This means each Masala Legacy is currently worth +1 percent to production if manually granted in state. Actual prestige earning/reset is planned, not implemented.
+This means each Masala Legacy is worth +1 percent to production after prestige or when granted in state.
 
 ### Rush Multiplier
 

@@ -31,6 +31,9 @@ Current test cases:
 | `Repository_delete_save_removes_existing_file_and_tolerates_missing_file` | Settings reset can delete the local save safely. |
 | Tutorial prompt tests | First-tap, save-for-upgrade, buy-upgrade, and completion states. |
 | `Prestige_preview_stays_locked_until_first_empire_arc_is_complete` | Prestige preview condition and projected Masala Legacy formula. |
+| `Prestige_reset_adds_legacy_points_and_preserves_skill_tree` | Prestige reset grants rewards, clears run state, and keeps skill progress. |
+| `Prestige_skill_spending_applies_formula_and_cost_effects` | Skill spending affects tap, passive, upgrade cost, location cost, and global formulas. |
+| `Prestige_offline_and_rush_skills_apply_to_timers_and_rewards` | Offline and rush prestige skills affect reward caps, efficiency, cooldowns, and rush tap value. |
 
 ## Running Edit-Mode Tests
 
@@ -43,7 +46,7 @@ Unity.exe -batchmode -projectPath <project> -runTests -testPlatform editmode -te
 Tests should produce:
 
 ```text
-total="20" passed="20" failed="0"
+total="23" passed="23" failed="0"
 ```
 
 ## First 5 Minutes Test
@@ -144,6 +147,8 @@ Run this after any economy change:
 - Offline reward remains capped.
 - Rush cannot be triggered during cooldown.
 - Prestige preview remains locked until airport/lounge and 1B lifetime rupees.
+- Prestige reset preserves Masala Legacy and skill levels.
+- Skill effects still apply after save/load.
 
 ## UI Regression Checklist
 
@@ -222,6 +227,4 @@ Avoid:
 | Future test | Why |
 | --- | --- |
 | Rush cooldown tests | Lock burst behavior. |
-| Prestige reset tests | Required when prestige is implemented. |
-| Skill tree tests | Required when skills affect formulas. |
 | Presenter play-mode smoke test | Validate scene boots and buttons exist. |

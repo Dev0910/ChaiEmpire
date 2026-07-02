@@ -10,6 +10,7 @@ namespace ChaiEmpire
     public sealed class ChaiGamePresenter : MonoBehaviour
     {
         private const float ResetConfirmSeconds = 6f;
+        private const float PrestigeConfirmSeconds = 8f;
 
         private static readonly Color Background = new Color(0.05f, 0.16f, 0.17f);
         private static readonly Color Panel = new Color(0.96f, 0.93f, 0.84f);
@@ -26,6 +27,7 @@ namespace ChaiEmpire
 
         private readonly List<UpgradeRow> upgradeRows = new List<UpgradeRow>();
         private readonly List<LocationRow> locationRows = new List<LocationRow>();
+        private readonly List<PrestigeSkillRow> prestigeSkillRows = new List<PrestigeSkillRow>();
         private readonly List<SteamWisp> steamWisps = new List<SteamWisp>();
 
         private ChaiContent content;
@@ -54,6 +56,8 @@ namespace ChaiEmpire
         private Text rushText;
         private Text statusText;
         private Text prestigeText;
+        private Button prestigeButton;
+        private Text prestigeButtonLabel;
         private Button rushButton;
         private Button hapticsToggleButton;
         private Text hapticsToggleLabel;
@@ -63,9 +67,11 @@ namespace ChaiEmpire
         private float saveTimer;
         private float statusTimer;
         private float resetConfirmTimer;
+        private float prestigeConfirmTimer;
         private float steamTimer;
         private bool hapticsEnabled = true;
         private bool resetSaveArmed;
+        private bool prestigeArmed;
 
         private void Start()
         {
@@ -119,6 +125,16 @@ namespace ChaiEmpire
                 {
                     resetSaveArmed = false;
                     RefreshSettings();
+                }
+            }
+
+            if (prestigeArmed)
+            {
+                prestigeConfirmTimer -= Time.deltaTime;
+                if (prestigeConfirmTimer <= 0)
+                {
+                    prestigeArmed = false;
+                    RefreshPrestige();
                 }
             }
 
@@ -525,7 +541,7 @@ namespace ChaiEmpire
 
         private void BuildPrestige(Transform parent)
         {
-            GameObject section = CreatePanel("Prestige", parent, new Color(0.96f, 0.92f, 0.97f), 180);
+            GameObject section = CreatePanel("Prestige", parent, new Color(0.96f, 0.92f, 0.97f), 1240);
             VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(22, 22, 18, 18);
             layout.spacing = 8;
@@ -533,6 +549,23 @@ namespace ChaiEmpire
             Text title = CreateText("Prestige Title", section.transform, "Secret Masala", 34, Rose, TextAnchor.MiddleLeft);
             title.fontStyle = FontStyle.Bold;
             prestigeText = CreateText("Prestige Preview", section.transform, string.Empty, 24, Ink, TextAnchor.MiddleLeft);
+            prestigeButton = CreateButton("Prestige Button", section.transform, "Preserve Secret Masala", 24, Rose, 76);
+            prestigeButtonLabel = prestigeButton.GetComponentInChildren<Text>();
+            prestigeButton.onClick.AddListener(HandlePrestige);
+
+            Text skillTitle = CreateText("Skill Tree Title", section.transform, "Skill Tree", 30, Ink, TextAnchor.MiddleLeft);
+            skillTitle.fontStyle = FontStyle.Bold;
+
+            prestigeSkillRows.Clear();
+            foreach (PrestigeSkillDefinition skill in ChaiPrestigeSkills.All)
+            {
+                PrestigeSkillDefinition captured = skill;
+                Button button = CreateButton(skill.Id, section.transform, skill.DisplayName, 21, Teal, 86);
+                Text label = button.GetComponentInChildren<Text>();
+                button.onClick.AddListener(() => HandlePrestigeSkill(captured));
+                prestigeSkillRows.Add(new PrestigeSkillRow(captured, button, label));
+            }
+
             statusText = CreateText("Status", section.transform, string.Empty, 24, Rose, TextAnchor.MiddleLeft);
         }
 
@@ -588,7 +621,7 @@ namespace ChaiEmpire
             foreach (UpgradeRow row in upgradeRows)
             {
                 int level = game.State.GetUpgradeLevel(row.Definition.Id);
-                BigDouble cost = row.Definition.GetCost(level);
+                BigDouble cost = game.GetUpgradeCost(row.Definition.Id);
                 bool canBuy = game.State.Rupees >= cost;
                 row.Label.text = row.Definition.DisplayName + "  Lv " + level + "\n" +
                     row.Definition.Category + "  |  " + DescribeUpgrade(row.Definition) + "\n" +
@@ -600,16 +633,16 @@ namespace ChaiEmpire
             foreach (LocationRow row in locationRows)
             {
                 bool unlocked = game.State.IsLocationUnlocked(row.Definition.Id);
-                bool canUnlock = !unlocked && game.State.Rupees >= row.Definition.UnlockCost;
+                BigDouble unlockCost = game.GetLocationUnlockCost(row.Definition.Id);
+                bool canUnlock = !unlocked && game.State.Rupees >= unlockCost;
                 row.Label.text = row.Definition.DisplayName + "\n" +
                     "Demand x" + row.Definition.DemandMultiplier.ToString("0.##") + "  |  " +
-                    (unlocked ? "Unlocked" : "Cost " + ChaiNumberFormatter.Rupees(row.Definition.UnlockCost));
+                    (unlocked ? "Unlocked" : "Cost " + ChaiNumberFormatter.Rupees(unlockCost));
                 row.Button.interactable = canUnlock;
                 SetButtonColor(row.Button, unlocked ? Saffron : canUnlock ? Leaf : Disabled);
             }
 
-            PrestigePreview preview = game.GetPrestigePreview();
-            prestigeText.text = preview.Message + "\nProjected legacy: " + ChaiNumberFormatter.Compact(preview.ProjectedMasalaLegacy);
+            RefreshPrestige();
         }
 
         private void RefreshTutorial()
@@ -643,6 +676,37 @@ namespace ChaiEmpire
             SetButtonColor(hapticsToggleButton, hapticsEnabled ? Leaf : Disabled);
             resetSaveLabel.text = resetSaveArmed ? "Confirm Reset" : "Reset Save";
             SetButtonColor(resetSaveButton, resetSaveArmed ? Rose : Teal);
+        }
+
+        private void RefreshPrestige()
+        {
+            if (prestigeText == null || prestigeButton == null)
+            {
+                return;
+            }
+
+            PrestigePreview preview = game.GetPrestigePreview();
+            prestigeText.text = preview.Message + "\n" +
+                "Current legacy: " + ChaiNumberFormatter.Compact(game.State.Prestige.MasalaLegacy) +
+                "  |  Skill points: " + game.State.Prestige.UnspentSkillPoints + "\n" +
+                "Projected gain: " + ChaiNumberFormatter.Compact(preview.ProjectedMasalaLegacy) +
+                "  |  Reset: rupees, upgrades, locations";
+
+            prestigeButton.interactable = preview.CanPrestige;
+            prestigeButtonLabel.text = prestigeArmed ? "Confirm Prestige" : preview.CanPrestige ? "Preserve Secret Masala" : "Locked";
+            SetButtonColor(prestigeButton, preview.CanPrestige ? prestigeArmed ? Rose : Teal : Disabled);
+
+            foreach (PrestigeSkillRow row in prestigeSkillRows)
+            {
+                int level = game.State.Prestige.GetSkillLevel(row.Definition.Id);
+                bool isMaxed = level >= row.Definition.MaxLevel;
+                bool canSpend = !isMaxed && game.State.Prestige.UnspentSkillPoints > 0;
+                row.Label.text = row.Definition.DisplayName + "  Lv " + level + "/" + row.Definition.MaxLevel + "\n" +
+                    row.Definition.Branch + "  |  " + row.Definition.EffectLabel + "\n" +
+                    row.Definition.Description;
+                row.Button.interactable = canSpend;
+                SetButtonColor(row.Button, isMaxed ? Saffron : canSpend ? Leaf : Disabled);
+            }
         }
 
         private void HandleHapticsToggle()
@@ -706,6 +770,63 @@ namespace ChaiEmpire
             RefreshAll();
         }
 
+        private void HandlePrestige()
+        {
+            PlayButtonPressSound();
+            PrestigePreview preview = game.GetPrestigePreview();
+            if (!preview.CanPrestige)
+            {
+                SetStatus("Reach Airport Lounge and 1B lifetime rupees first");
+                RefreshPrestige();
+                return;
+            }
+
+            if (!prestigeArmed)
+            {
+                prestigeArmed = true;
+                prestigeConfirmTimer = PrestigeConfirmSeconds;
+                SetStatus("Tap Confirm Prestige to reset this run");
+                RefreshPrestige();
+                return;
+            }
+
+            prestigeArmed = false;
+            prestigeConfirmTimer = 0;
+            HideOfflineReward();
+
+            if (game.TryPrestige(out PrestigeResult result))
+            {
+                ChaiSaveRepository.Save(game.State);
+                PlayUnlockSound();
+                TriggerHaptic();
+                SetStatus("Preserved +" + ChaiNumberFormatter.Compact(result.GainedMasalaLegacy) + " legacy, +" + result.GainedSkillPoints + " points");
+            }
+            else
+            {
+                SetStatus(result.Message);
+            }
+
+            RefreshAll();
+        }
+
+        private void HandlePrestigeSkill(PrestigeSkillDefinition definition)
+        {
+            PlayButtonPressSound();
+            if (game.TrySpendSkillPoint(definition.Id))
+            {
+                ChaiSaveRepository.Save(game.State);
+                PlayPurchaseSound();
+                TriggerHaptic();
+                SetStatus(definition.DisplayName + " upgraded");
+            }
+            else
+            {
+                SetStatus("Need a skill point");
+            }
+
+            RefreshAll();
+        }
+
         private void PlayButtonPressSound()
         {
             PlaySound(GetButtonPressClip(), 0.42f);
@@ -747,10 +868,10 @@ namespace ChaiEmpire
             }
 
             offlineRewardAmountText.text = ChaiNumberFormatter.Rupees(reward.RupeesEarned);
-            offlineRewardDetailText.text = "Away " + FormatDuration(reward.RawSeconds) + "  |  Efficiency " + FormatPercent(content.OfflineEfficiency);
+            offlineRewardDetailText.text = "Away " + FormatDuration(reward.RawSeconds) + "  |  Efficiency " + FormatPercent(game.GetOfflineEfficiency());
             offlineRewardCapText.text = reward.WasCapped ?
                 "Capped at " + FormatDuration(reward.CappedSeconds) :
-                "Cap " + FormatDuration(content.OfflineCapSeconds);
+                "Cap " + FormatDuration(game.GetOfflineCapSeconds());
             offlineRewardModal.SetActive(true);
         }
 
@@ -1165,6 +1286,20 @@ namespace ChaiEmpire
             }
 
             public LocationDefinition Definition { get; }
+            public Button Button { get; }
+            public Text Label { get; }
+        }
+
+        private sealed class PrestigeSkillRow
+        {
+            public PrestigeSkillRow(PrestigeSkillDefinition definition, Button button, Text label)
+            {
+                Definition = definition;
+                Button = button;
+                Label = label;
+            }
+
+            public PrestigeSkillDefinition Definition { get; }
             public Button Button { get; }
             public Text Label { get; }
         }

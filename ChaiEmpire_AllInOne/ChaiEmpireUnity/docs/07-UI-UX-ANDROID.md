@@ -204,9 +204,12 @@ Shows:
 - Section title `Secret Masala`.
 - Prestige readiness message.
 - Projected legacy amount.
+- Two-tap prestige confirmation when unlocked.
+- Current Masala Legacy and unspent skill points.
+- Skill rows with level, branch, effect, and spend button state.
 - Temporary status messages.
 
-Current prestige is preview-only.
+Prestige resets rupees, upgrades, locations, and run counters, while keeping Masala Legacy and skill levels.
 
 ### Settings
 
