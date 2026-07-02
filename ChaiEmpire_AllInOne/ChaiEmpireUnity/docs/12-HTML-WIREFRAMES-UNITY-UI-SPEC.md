@@ -122,7 +122,7 @@ Recommended production structure:
 | Region | Content | Behavior |
 | --- | --- | --- |
 | Header | `Chai Empire`, current highest location, demand multiplier. | Always visible at top of scroll. |
-| Stall Art | Procedural kettle, stove, burner, flame, steam, customer queue, and UPI QR prop shapes. | First-screen visual anchor; steam wisps animate while customer and payment props make the stall feel active. |
+| Stall Art | Procedural kettle, stove, burner, flame, steam, customer queue, and UPI QR prop shapes. | First-screen visual anchor; steam wisps animate, customer/payment props stay visible, and backdrop palette follows the highest unlocked location. |
 | Stats | Rupees, passive/sec, tap value, chai served or lifetime. | Refresh at fixed cadence. |
 | Tutorial | First tap and first upgrade prompt. | Visible only until Strong Tea Leaves is bought. |
 | Actions | Tap Kettle, Serve Queue, Rush Hour. | Highest priority interaction area. |

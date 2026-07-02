@@ -103,6 +103,12 @@ UPI QR prop behavior:
 - A small payment sign sits on the counter.
 - The pattern is decorative and not a real payment code.
 
+Location backdrop behavior:
+
+- `Stall Art`, `Back Wall Glow`, `Counter Top`, and `Counter Front` recolor based on the highest unlocked location.
+- Gali Tapri, Bus Stand, Railway Platform, College Canteen, IT Park, Highway Dhaba, Mall Kiosk, and Airport Lounge each have a distinct palette.
+- The visual change is applied during `RefreshAll()` alongside the header location update.
+
 ### Stats
 
 Height: 250.

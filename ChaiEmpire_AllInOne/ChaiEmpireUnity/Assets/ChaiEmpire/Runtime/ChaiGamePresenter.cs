@@ -39,6 +39,10 @@ namespace ChaiEmpire
         private Text tutorialProgressText;
         private Button tutorialPrimaryButton;
         private Text tutorialPrimaryLabel;
+        private Image stallArtBackground;
+        private Image stallArtGlow;
+        private Image stallCounterTop;
+        private Image stallCounterFront;
         private GameObject offlineRewardModal;
         private Text offlineRewardAmountText;
         private Text offlineRewardDetailText;
@@ -245,9 +249,10 @@ namespace ChaiEmpire
             steamWisps.Clear();
 
             GameObject art = CreatePanel("Stall Art", parent, backdrop, 360);
-            CreateArtShape("Back Wall Glow", art.transform, new Vector2(0, 28), new Vector2(820, 250), new Color(1f, 0.91f, 0.68f), GetCircleSprite(), 0);
-            CreateArtShape("Counter Top", art.transform, new Vector2(0, -124), new Vector2(900, 56), counter, null, 0);
-            CreateArtShape("Counter Front", art.transform, new Vector2(0, -160), new Vector2(860, 58), new Color(0.48f, 0.25f, 0.13f), null, 0);
+            stallArtBackground = art.GetComponent<Image>();
+            stallArtGlow = CreateArtShape("Back Wall Glow", art.transform, new Vector2(0, 28), new Vector2(820, 250), new Color(1f, 0.91f, 0.68f), GetCircleSprite(), 0);
+            stallCounterTop = CreateArtShape("Counter Top", art.transform, new Vector2(0, -124), new Vector2(900, 56), counter, null, 0);
+            stallCounterFront = CreateArtShape("Counter Front", art.transform, new Vector2(0, -160), new Vector2(860, 58), new Color(0.48f, 0.25f, 0.13f), null, 0);
             CreateCustomerQueue(art.transform);
             CreateUpiQrProp(art.transform);
 
@@ -531,7 +536,9 @@ namespace ChaiEmpire
             tapText.text = "Kettle tap  " + ChaiNumberFormatter.Rupees(game.GetTapValue());
             servedText.text = "Chai served  " + ChaiNumberFormatter.Compact(game.State.ChaiServed);
             legacyText.text = "Masala Legacy  " + ChaiNumberFormatter.Compact(game.State.Prestige.MasalaLegacy);
-            locationText.text = GetCurrentLocationName() + "  |  Demand x" + game.GetDemandMultiplier().ToString("0.##");
+            LocationDefinition currentLocation = GetCurrentLocation();
+            locationText.text = currentLocation.DisplayName + "  |  Demand x" + game.GetDemandMultiplier().ToString("0.##");
+            ApplyLocationBackdrop(currentLocation.Id);
 
             if (game.State.RushRemainingSeconds > 0)
             {
@@ -701,7 +708,7 @@ namespace ChaiEmpire
             }
         }
 
-        private string GetCurrentLocationName()
+        private LocationDefinition GetCurrentLocation()
         {
             LocationDefinition current = content.Locations[0];
             foreach (LocationDefinition location in content.Locations)
@@ -712,7 +719,21 @@ namespace ChaiEmpire
                 }
             }
 
-            return current.DisplayName;
+            return current;
+        }
+
+        private void ApplyLocationBackdrop(string locationId)
+        {
+            if (stallArtBackground == null)
+            {
+                return;
+            }
+
+            LocationVisualPalette palette = GetLocationVisualPalette(locationId);
+            stallArtBackground.color = palette.Backdrop;
+            stallArtGlow.color = palette.Glow;
+            stallCounterTop.color = palette.CounterTop;
+            stallCounterFront.color = palette.CounterFront;
         }
 
         private static string FormatPercent(double value)
@@ -791,6 +812,61 @@ namespace ChaiEmpire
             image.sprite = sprite;
             image.raycastTarget = false;
             return image;
+        }
+
+        private static LocationVisualPalette GetLocationVisualPalette(string locationId)
+        {
+            switch (locationId)
+            {
+                case "bus-stand":
+                    return new LocationVisualPalette(
+                        new Color(0.98f, 0.78f, 0.47f),
+                        new Color(1f, 0.90f, 0.56f),
+                        new Color(0.30f, 0.20f, 0.14f),
+                        new Color(0.49f, 0.30f, 0.16f));
+                case "railway-platform":
+                    return new LocationVisualPalette(
+                        new Color(0.72f, 0.78f, 0.82f),
+                        new Color(0.88f, 0.92f, 0.92f),
+                        new Color(0.25f, 0.25f, 0.24f),
+                        new Color(0.42f, 0.34f, 0.25f));
+                case "college-canteen":
+                    return new LocationVisualPalette(
+                        new Color(0.84f, 0.86f, 0.58f),
+                        new Color(0.97f, 0.92f, 0.62f),
+                        new Color(0.29f, 0.23f, 0.12f),
+                        new Color(0.42f, 0.33f, 0.18f));
+                case "it-park":
+                    return new LocationVisualPalette(
+                        new Color(0.60f, 0.82f, 0.88f),
+                        new Color(0.80f, 0.95f, 1f),
+                        new Color(0.18f, 0.24f, 0.27f),
+                        new Color(0.30f, 0.38f, 0.42f));
+                case "highway-dhaba":
+                    return new LocationVisualPalette(
+                        new Color(0.89f, 0.70f, 0.44f),
+                        new Color(1f, 0.86f, 0.55f),
+                        new Color(0.31f, 0.16f, 0.08f),
+                        new Color(0.49f, 0.25f, 0.12f));
+                case "mall-kiosk":
+                    return new LocationVisualPalette(
+                        new Color(0.84f, 0.75f, 0.90f),
+                        new Color(0.98f, 0.88f, 1f),
+                        new Color(0.26f, 0.19f, 0.34f),
+                        new Color(0.45f, 0.31f, 0.52f));
+                case "airport-lounge":
+                    return new LocationVisualPalette(
+                        new Color(0.69f, 0.83f, 0.93f),
+                        new Color(0.92f, 0.98f, 1f),
+                        new Color(0.20f, 0.23f, 0.29f),
+                        new Color(0.35f, 0.39f, 0.48f));
+                default:
+                    return new LocationVisualPalette(
+                        new Color(0.99f, 0.84f, 0.58f),
+                        new Color(1f, 0.91f, 0.68f),
+                        new Color(0.36f, 0.18f, 0.10f),
+                        new Color(0.48f, 0.25f, 0.13f));
+            }
         }
 
         private void CreateSteamWisp(string name, Transform parent, Vector2 basePosition, Vector2 baseSize, float phaseSeconds)
@@ -951,6 +1027,22 @@ namespace ChaiEmpire
             public LocationDefinition Definition { get; }
             public Button Button { get; }
             public Text Label { get; }
+        }
+
+        private readonly struct LocationVisualPalette
+        {
+            public LocationVisualPalette(Color backdrop, Color glow, Color counterTop, Color counterFront)
+            {
+                Backdrop = backdrop;
+                Glow = glow;
+                CounterTop = counterTop;
+                CounterFront = counterFront;
+            }
+
+            public Color Backdrop { get; }
+            public Color Glow { get; }
+            public Color CounterTop { get; }
+            public Color CounterFront { get; }
         }
 
         private sealed class SteamWisp
