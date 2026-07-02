@@ -178,6 +178,68 @@ namespace ChaiEmpire.Tests
         }
 
         [Test]
+        public void Tutorial_prompts_first_tap_on_fresh_state()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+
+            ChaiTutorialPrompt prompt = ChaiTutorial.GetPrompt(game.State, content);
+
+            Assert.That(prompt.ShouldShow, Is.True);
+            Assert.That(prompt.Step, Is.EqualTo(ChaiTutorialStep.FirstTap));
+            Assert.That(prompt.PrimaryAction, Is.EqualTo(ChaiTutorialAction.TapKettle));
+            Assert.That(prompt.PrimaryButtonLabel, Is.EqualTo("Tap Kettle"));
+        }
+
+        [Test]
+        public void Tutorial_guides_player_toward_first_upgrade_after_first_tap()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+
+            game.TapKettle();
+
+            ChaiTutorialPrompt prompt = ChaiTutorial.GetPrompt(game.State, content);
+
+            Assert.That(prompt.ShouldShow, Is.True);
+            Assert.That(prompt.Step, Is.EqualTo(ChaiTutorialStep.SaveForFirstUpgrade));
+            Assert.That(prompt.PrimaryAction, Is.EqualTo(ChaiTutorialAction.TapKettle));
+            Assert.That(prompt.Progress, Is.EqualTo("Rs 1 / Rs 10"));
+        }
+
+        [Test]
+        public void Tutorial_switches_to_buy_prompt_when_first_upgrade_is_affordable()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            game.TapKettle();
+            game.State.Rupees = new BigDouble(10);
+
+            ChaiTutorialPrompt prompt = ChaiTutorial.GetPrompt(game.State, content);
+
+            Assert.That(prompt.ShouldShow, Is.True);
+            Assert.That(prompt.Step, Is.EqualTo(ChaiTutorialStep.BuyFirstUpgrade));
+            Assert.That(prompt.PrimaryAction, Is.EqualTo(ChaiTutorialAction.BuyFirstUpgrade));
+            Assert.That(prompt.PrimaryButtonLabel, Is.EqualTo("Buy Strong Tea"));
+        }
+
+        [Test]
+        public void Tutorial_completes_after_first_upgrade_purchase()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            game.State.Rupees = new BigDouble(10);
+
+            Assert.That(game.TryBuyUpgrade(ChaiTutorial.FirstUpgradeId), Is.True);
+
+            ChaiTutorialPrompt prompt = ChaiTutorial.GetPrompt(game.State, content);
+
+            Assert.That(prompt.ShouldShow, Is.False);
+            Assert.That(prompt.Step, Is.EqualTo(ChaiTutorialStep.Complete));
+            Assert.That(prompt.PrimaryAction, Is.EqualTo(ChaiTutorialAction.None));
+        }
+
+        [Test]
         public void Prestige_preview_stays_locked_until_first_empire_arc_is_complete()
         {
             ChaiContent content = ChaiContent.CreateDefault();

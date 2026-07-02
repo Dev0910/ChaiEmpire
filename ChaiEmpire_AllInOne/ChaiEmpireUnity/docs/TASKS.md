@@ -12,10 +12,10 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
   - [x] Inspect Unity logs.
   - [x] Commit and push.
 - [ ] Tutorial
-  - [ ] Add a short tutorial overlay or guided first taps.
-  - [ ] Verify a new player can identify the first action quickly.
-  - [ ] Add or update relevant tests.
-  - [ ] Run play check and inspect logs.
+  - [x] Add a short tutorial overlay or guided first taps.
+  - [x] Verify a new player can identify the first action quickly.
+  - [x] Add or update relevant tests.
+  - [x] Run play check and inspect logs.
   - [ ] Update docs, commit, and push.
 - [ ] Early balance pass
   - [ ] Add reset-save option in settings.
