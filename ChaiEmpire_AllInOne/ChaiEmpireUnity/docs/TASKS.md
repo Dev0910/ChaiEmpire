@@ -35,7 +35,7 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 - [x] Add location-specific backgrounds.
 - [x] Add button press sounds.
 - [x] Add purchase/unlock sounds.
-- [ ] Add optional haptics.
+- [x] Add optional haptics.
 - [ ] Review and document all imported or generated assets.
 - [ ] Run visual/play checks, inspect logs, update docs, commit, and push.
 
