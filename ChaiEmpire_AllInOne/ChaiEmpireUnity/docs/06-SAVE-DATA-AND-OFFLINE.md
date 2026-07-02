@@ -77,6 +77,7 @@ Current runtime state fields:
 | `Event` | `EventState` | Active optional event, event cooldown, and rotation progress. |
 | `Monetization` | `MonetizationState` | Optional reward timers, no-ads flag, and sponsor claim count. |
 | `Cosmetics` | `CosmeticState` | Selected stall theme, cup pack, and signboard pack. |
+| `Production` | `ProductionState` | Privacy/consent state, local achievements, cloud-save export count, analytics queue, and latest crash-report note. |
 | `Prestige` | `PrestigeState` | Future prestige state. |
 | `UpgradeLevels` | `List<UpgradeLevelEntry>` | Upgrade IDs and levels. |
 | `UnlockedLocations` | `List<LocationUnlockEntry>` | Location IDs that are unlocked. |
@@ -99,6 +100,7 @@ Expected JSON fields:
 | `eventState` | Event DTO. |
 | `monetization` | Monetization DTO. |
 | `cosmetics` | Cosmetic DTO. |
+| `production` | Production-readiness DTO. |
 | `prestige` | Prestige DTO. |
 | `upgradeLevels` | List of upgrade level DTOs. |
 | `unlockedLocations` | List of location unlock DTOs. |
@@ -137,6 +139,19 @@ Cosmetic DTO:
 | `cupPackId` | Selected cup pack. |
 | `signboardPackId` | Selected signboard pack. |
 
+Production DTO:
+
+| JSON field | Notes |
+| --- | --- |
+| `analyticsConsent` | Enables local analytics event recording when true. |
+| `adsConsent` | Stores opt-in consent for future ad SDK adapters. |
+| `crashReportingConsent` | Enables local crash-report message capture when true. |
+| `privacyPolicyAcknowledged` | True after the player opens the privacy policy link. |
+| `cloudSaveExportCount` | Count of manual cloud-save payload exports. |
+| `lastCrashReport` | Latest local crash-report message, if consent was on. |
+| `achievements` | Local achievement unlock entries. |
+| `analyticsEvents` | Bounded local analytics event queue. |
+
 Upgrade level DTO:
 
 | JSON field | Meaning |
@@ -156,6 +171,21 @@ Skill DTO:
 | --- | --- |
 | `id` | Stable skill ID. |
 | `level` | Skill level. |
+
+Achievement DTO:
+
+| JSON field | Meaning |
+| --- | --- |
+| `id` | Stable local achievement ID. |
+| `unlockedUtcTicks` | UTC ticks when the achievement was unlocked. |
+
+Analytics event DTO:
+
+| JSON field | Meaning |
+| --- | --- |
+| `name` | Event name. |
+| `utcTicks` | UTC ticks when the event was recorded. |
+| `detail` | Optional event detail such as an upgrade/location ID. |
 
 ## BigDouble Serialization
 
@@ -186,6 +216,10 @@ Invalid, NaN, or infinity number strings make the save recover as corrupt.
 | `ChaiServed` | `0` |
 | `LastSavedUtcTicks` | `DateTime.UtcNow.Ticks` |
 | `Prestige` | New `PrestigeState` |
+| `Event` | New `EventState` |
+| `Monetization` | New `MonetizationState` |
+| `Cosmetics` | Default classic tapri theme, kulhad cups, painted board |
+| `Production` | New `ProductionState` with all consent flags off |
 | Default location | `gali-tapri` unlocked |
 
 ## Load Safety Behavior
@@ -198,6 +232,7 @@ Current load behavior:
 - `ChaiSaveRepository` moves a corrupt existing save to `chai-empire-save.json.corrupt-<utc>.bak` before returning the new state.
 - Invalid `LastSavedUtcTicks` values skip offline reward calculation and are replaced with the current UTC ticks.
 - Negative rush timers are clamped to zero.
+- Missing production DTOs default to no consent, no achievements, no analytics events, and zero cloud exports.
 - `gali-tapri` is always unlocked after load.
 - Upgrade levels are clamped to at least zero through `SetUpgradeLevel`.
 
@@ -240,6 +275,8 @@ When `LoadResult.HasOfflineReward` is true, the presenter shows an offline rewar
 ## Save Versioning Strategy
 
 Current version: `1`.
+
+Phase 7 adds optional production-readiness fields and keeps the save version at `1` because missing values default safely for older saves.
 
 Future rule:
 

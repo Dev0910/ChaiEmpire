@@ -639,6 +639,100 @@ namespace ChaiEmpire.Tests
             Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(2.2d).Within(0.001d));
         }
 
+        [Test]
+        public void Production_consents_gate_local_analytics()
+        {
+            ChaiGame game = ChaiGame.NewGame(ChaiContent.CreateDefault());
+
+            Assert.That(game.RecordAnalyticsEvent("session-start", "fresh"), Is.False);
+            Assert.That(game.State.Production.AnalyticsEvents.Count, Is.EqualTo(0));
+
+            game.SetAnalyticsConsent(true);
+
+            Assert.That(game.RecordAnalyticsEvent("session-start", "fresh"), Is.True);
+            Assert.That(game.State.Production.AnalyticsEvents.Count, Is.EqualTo(1));
+            Assert.That(game.State.Production.AnalyticsEvents[0].Name, Is.EqualTo("session-start"));
+
+            game.SetAnalyticsConsent(false);
+
+            Assert.That(game.RecordAnalyticsEvent("tap"), Is.False);
+            Assert.That(game.State.Production.AnalyticsEvents.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Cloud_save_export_import_round_trip_reduces_save_loss_risk()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            game.State.Rupees = new BigDouble(1234);
+            game.State.TotalLifetimeRupees = new BigDouble(5678);
+            game.State.SetUpgradeLevel("helper-boy", 2);
+            game.State.UnlockLocation("bus-stand");
+            game.SetAdsConsent(true);
+            game.AcknowledgePrivacyPolicy();
+
+            string payload = game.ExportCloudSavePayload();
+
+            Assert.That(payload, Does.Contain("\"production\""));
+            Assert.That(game.State.Production.CloudSaveExportCount, Is.EqualTo(1));
+
+            ChaiGame imported = ChaiGame.NewGame(content);
+
+            Assert.That(imported.TryImportCloudSavePayload(payload), Is.True);
+            Assert.That(imported.State.Rupees.ToDouble(), Is.EqualTo(1234d).Within(0.001d));
+            Assert.That(imported.State.TotalLifetimeRupees.ToDouble(), Is.EqualTo(5678d).Within(0.001d));
+            Assert.That(imported.State.GetUpgradeLevel("helper-boy"), Is.EqualTo(2));
+            Assert.That(imported.State.IsLocationUnlocked("bus-stand"), Is.True);
+            Assert.That(imported.State.Production.CloudSaveExportCount, Is.EqualTo(1));
+            Assert.That(imported.State.Production.AdsConsent, Is.True);
+            Assert.That(imported.State.Production.PrivacyPolicyAcknowledged, Is.True);
+        }
+
+        [Test]
+        public void Achievements_unlock_from_progression_state()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            game.State.Rupees = new BigDouble(2_000_000_000d);
+
+            Assert.That(game.TryBuyUpgrade("strong-tea"), Is.True);
+            Assert.That(game.TryUnlockLocation("bus-stand"), Is.True);
+
+            ChaiEventDefinition firstEvent = game.GetNextEventDefinition();
+            Assert.That(game.TryStartEvent(firstEvent.Id), Is.True);
+            game.Tick(firstEvent.DurationSeconds);
+
+            game.State.TotalLifetimeRupees = new BigDouble(1_000_000_000d);
+            game.State.UnlockLocation("airport-lounge");
+            Assert.That(game.TryPrestige(out PrestigeResult _), Is.True);
+            Assert.That(game.TryPurchaseNoAds(), Is.True);
+
+            Assert.That(game.State.Production.IsAchievementUnlocked("first-upgrade"), Is.True);
+            Assert.That(game.State.Production.IsAchievementUnlocked("bus-stand-open"), Is.True);
+            Assert.That(game.State.Production.IsAchievementUnlocked("first-event"), Is.True);
+            Assert.That(game.State.Production.IsAchievementUnlocked("secret-masala"), Is.True);
+            Assert.That(game.State.Production.IsAchievementUnlocked("no-ads-owned"), Is.True);
+        }
+
+        [Test]
+        public void Privacy_and_crash_reporting_state_persist()
+        {
+            ChaiGame game = ChaiGame.NewGame(ChaiContent.CreateDefault());
+
+            Assert.That(game.RecordCrashReport("startup failure"), Is.False);
+
+            game.AcknowledgePrivacyPolicy();
+            game.SetCrashReportingConsent(true);
+
+            Assert.That(game.RecordCrashReport("startup failure"), Is.True);
+
+            ChaiGameState restored = ChaiSaveCodec.FromJson(ChaiSaveCodec.ToJson(game.State));
+
+            Assert.That(restored.Production.PrivacyPolicyAcknowledged, Is.True);
+            Assert.That(restored.Production.CrashReportingConsent, Is.True);
+            Assert.That(restored.Production.LastCrashReport, Is.EqualTo("startup failure"));
+        }
+
         private static string CreateTempSavePath()
         {
             string directory = Path.Combine(Path.GetTempPath(), "ChaiEmpireTests", Guid.NewGuid().ToString("N"));

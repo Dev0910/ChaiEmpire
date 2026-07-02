@@ -18,6 +18,13 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/ChaiEmpire_AllInOne/ChaiEmpireUnity/[Ll]ibrary/
+/ChaiEmpire_AllInOne/ChaiEmpireUnity/[Tt]emp/
+/ChaiEmpire_AllInOne/ChaiEmpireUnity/[Oo]bj/
+/ChaiEmpire_AllInOne/ChaiEmpireUnity/[Bb]uild/
+/ChaiEmpire_AllInOne/ChaiEmpireUnity/[Bb]uilds/
+/ChaiEmpire_AllInOne/ChaiEmpireUnity/[Ll]ogs/
+/ChaiEmpire_AllInOne/ChaiEmpireUnity/[Uu]ser[Ss]ettings/
 *.log
 
 # By default unity supports Blender asset imports, *.blend1 blender files do not need to be committed to version control.

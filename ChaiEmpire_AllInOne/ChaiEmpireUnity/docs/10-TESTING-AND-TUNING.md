@@ -40,6 +40,10 @@ Current test cases:
 | `Prestige_reset_adds_legacy_points_and_preserves_skill_tree` | Prestige reset grants rewards, clears run state, and keeps skill progress. |
 | `Prestige_skill_spending_applies_formula_and_cost_effects` | Skill spending affects tap, passive, upgrade cost, location cost, and global formulas. |
 | `Prestige_offline_and_rush_skills_apply_to_timers_and_rewards` | Offline and rush prestige skills affect reward caps, efficiency, cooldowns, and rush tap value. |
+| `Production_consents_gate_local_analytics` | Analytics events are recorded only after opt-in consent. |
+| `Cloud_save_export_import_round_trip_reduces_save_loss_risk` | Manual cloud-save payload export/import preserves economy and production state. |
+| `Achievements_unlock_from_progression_state` | Local achievement IDs unlock from upgrade, location, event, prestige, and no-ads progression. |
+| `Privacy_and_crash_reporting_state_persist` | Privacy acknowledgement, crash consent, and latest crash-report state survive save/load. |
 
 ## Running Edit-Mode Tests
 
@@ -52,7 +56,7 @@ Unity.exe -batchmode -projectPath <project> -runTests -testPlatform editmode -te
 Tests should produce:
 
 ```text
-total="29" passed="29" failed="0"
+total="33" passed="33" failed="0"
 ```
 
 ## First 5 Minutes Test
@@ -156,6 +160,9 @@ Run this after any economy change:
 - Event cooldown and rotation survive save/load.
 - Optional rewards are opt-in and never required for first-upgrade progression.
 - Cosmetic and no-ads flags do not change production formulas.
+- Analytics and crash reporting remain consent-gated.
+- Cloud-save export/import preserves the normal JSON save shape.
+- Local achievements unlock from durable progression state.
 - Prestige preview remains locked until airport/lounge and 1B lifetime rupees.
 - Prestige reset preserves Masala Legacy and skill levels.
 - Skill effects still apply after save/load.

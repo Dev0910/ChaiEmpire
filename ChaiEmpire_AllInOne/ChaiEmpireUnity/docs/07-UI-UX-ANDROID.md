@@ -23,21 +23,29 @@ Current characteristics:
 Current screen order:
 
 1. Header.
-2. Stats.
-3. Tutorial guide, shown until the first upgrade is bought.
-4. Actions.
-5. Upgrades.
-6. Locations.
-7. Prestige preview.
+2. Stall art.
+3. Stats.
+4. Tutorial guide, shown until the first upgrade is bought.
+5. Actions.
+6. Live Events.
+7. Optional Rewards.
+8. Privacy & Services.
+9. Upgrades.
+10. Locations.
+11. Secret Masala prestige and skill tree.
+12. Settings.
 
 ```mermaid
 flowchart TD
     A["Header: title + current location"] --> B["Stats: rupees, production, tap value"]
     B --> C["Tutorial: first tap and first upgrade guide"]
     C --> D["Actions: Tap Kettle, Serve Queue, Rush Hour"]
-    D --> E["Upgrades list"]
-    E --> F["Locations list"]
-    F --> G["Secret Masala preview"]
+    D --> E["Live Events"]
+    E --> F["Optional Rewards"]
+    F --> G["Privacy & Services"]
+    G --> H["Upgrades list"]
+    H --> I["Locations list"]
+    I --> J["Secret Masala preview"]
 ```
 
 ## Current Visual Palette
@@ -193,6 +201,28 @@ Shows:
 
 The offline reward modal also includes an optional `Sponsor x2` button. These controls are opt-in and the core loop remains playable without using them.
 
+### Privacy & Services
+
+Shows:
+
+- Section title `Privacy & Services`.
+- Privacy acknowledgement status.
+- Local achievement count.
+- Analytics, ads, and crash-report consent state.
+- Manual cloud-save export count.
+
+Controls:
+
+| Control | Behavior |
+| --- | --- |
+| `Privacy Policy` | Opens `ChaiProductionServices.PrivacyPolicyUrl` and marks the policy acknowledged. |
+| `Analytics` toggle | Enables or disables local analytics event recording. |
+| `Ads Consent` toggle | Stores consent for future ad SDK adapters. |
+| `Crash Reports` toggle | Enables or disables local crash-report message capture. |
+| `Export Cloud Save` | Creates a JSON cloud-save payload and copies it to the system clipboard. |
+
+The panel is a local production-readiness adapter. It does not connect to a real cloud, analytics, ad, crash-reporting, or Play Games SDK yet.
+
 ### Upgrades
 
 Shows all current upgrades.
@@ -276,6 +306,9 @@ Every important action should have immediate feedback.
 | Trigger Rush Hour | Status message `Rush hour: 2x for 20 sec`. |
 | Return after offline reward | Offline reward modal plus status message `Welcome back: Rs <amount>`. |
 | Tutorial primary tap | Same feedback as the action it performs. |
+| Privacy policy | Opens the configured URL and marks privacy as seen. |
+| Consent toggles | Persist the chosen on/off state and show a short status message. |
+| Cloud save export | Copies the local JSON payload and increments the export count. |
 | Reset save | Two-step confirmation and status message `Save reset`. |
 
 Future polish:

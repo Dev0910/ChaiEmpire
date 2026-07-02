@@ -14,6 +14,7 @@ flowchart TD
     Content --> Game
     Codec --> State
     Presenter --> Formatter["ChaiNumberFormatter\nDisplay strings"]
+    Game --> Production["ChaiProductionServices\nPrivacy URL + achievement definitions"]
 ```
 
 ## Assembly Layout
@@ -75,6 +76,12 @@ Responsibilities:
 - Unlock locations.
 - Apply offline progress.
 - Generate prestige preview.
+- Manage local production-readiness state:
+  - consent flags,
+  - cloud-save export/import payloads,
+  - local achievement unlocks,
+  - consent-gated analytics events,
+  - consent-gated crash-report message capture.
 
 Important methods:
 
@@ -92,6 +99,12 @@ Important methods:
 | `TryUnlockLocation(id)` | Unlocks location if possible. |
 | `ApplyOfflineProgress(elapsed)` | Applies capped offline reward. |
 | `GetPrestigePreview()` | Returns future-prestige readiness. |
+| `ExportCloudSavePayload()` | Creates a local JSON payload for manual cloud/account sync adapters. |
+| `TryImportCloudSavePayload(payload)` | Imports a JSON payload through the normal save codec. |
+| Consent setters | Store analytics, ads, and crash-report consent choices. |
+| `RecordAnalyticsEvent(name, detail)` | Adds a local analytics event only when analytics consent is on. |
+| `RecordCrashReport(message)` | Stores the latest local crash report only when crash-report consent is on. |
+| `EvaluateAchievements()` | Unlocks local achievement IDs from progression state. |
 
 Design rule:
 
@@ -107,6 +120,9 @@ Responsibilities:
 - Store upgrade levels.
 - Store unlocked locations.
 - Store prestige fields.
+- Store optional event fields.
+- Store monetization/cosmetic fields.
+- Store production-readiness fields.
 - Provide helpers for upgrade/location lookups.
 
 Important fields:
@@ -119,6 +135,10 @@ Important fields:
 - `RushRemainingSeconds`
 - `RushCooldownSeconds`
 - `Prestige`
+- `Event`
+- `Monetization`
+- `Cosmetics`
+- `Production`
 - `UpgradeLevels`
 - `UnlockedLocations`
 
@@ -200,9 +220,13 @@ Current UI sections:
 - Header.
 - Stats.
 - Actions.
+- Live Events.
+- Optional Rewards.
+- Privacy & Services.
 - Upgrades.
 - Locations.
 - Prestige preview.
+- Settings.
 
 Design rule:
 
@@ -290,10 +314,13 @@ sequenceDiagram
 | More upgrade kinds | Add `UpgradeKind` values and handle them in `ChaiGame`. |
 | Skill tree effects | Add skill definitions and include effects in multiplier formulas. |
 | Events | Extend `ChaiEvents`, `EventState`, and event multiplier helpers in `ChaiGame`. |
-| Analytics | Add event emission in presenter after successful actions. |
-| Cloud save | Add another repository implementation or sync layer above `ChaiSaveRepository`. |
+| Analytics | Replace the local `ProductionState.AnalyticsEvents` queue with a consent-gated SDK adapter. |
+| Cloud save | Use `ExportCloudSavePayload()` and `TryImportCloudSavePayload()` behind a cloud/account adapter. |
+| Play Games achievements | Map `ChaiProductionServices.Achievements` IDs to Play Console achievement IDs. |
+| Crash reporting | Replace `RecordCrashReport` local state with a consent-gated crash SDK adapter. |
 | Better UI | Replace runtime UI construction while keeping `ChaiGame` API. |
 | Anti-cheat | Add server time or trusted clock checks around offline reward. |
+| Play Integrity | Add only when a backend, competitive feature, or real-money validation needs device/app integrity signals. |
 
 ## System Boundaries
 

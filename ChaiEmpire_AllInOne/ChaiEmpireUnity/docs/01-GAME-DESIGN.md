@@ -172,14 +172,17 @@ Implemented:
 - Prestige reset, Masala Legacy, skill points, and skill effects.
 - Optional rotating live events.
 - Optional sponsor rewards and cosmetic selections.
+- Privacy & Services panel with consent toggles.
+- Local cloud-save export/import payload support.
+- Local Play Games achievement definitions and progression unlock state.
+- Consent-gated local analytics queue and crash-report state.
 - Android portrait runtime-created UI.
 - Android APK build entrypoint.
 
 Planned/future:
 
 - Real ad SDK and billing integration.
-- Analytics.
-- Cloud save.
+- Real Play Games, cloud save/account sync, analytics, and crash-reporting SDK integrations.
 - Better art/audio.
 
 ## Success Criteria For The Game

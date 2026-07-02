@@ -41,6 +41,7 @@ Assets/
       ChaiSaveCodec.cs
       ChaiSaveRepository.cs
       ChaiNumberFormatter.cs
+      ChaiProductionServices.cs
       ChaiGamePresenter.cs
       ThirdParty/
         BreakInfinity/
@@ -171,6 +172,15 @@ Keep these public methods stable if possible:
 | `ChaiGame.TryStartRewardedProductionBoost()` | Starts an opt-in temporary x2 production boost. |
 | `ChaiGame.TryPurchaseNoAds()` | Sets the local no-ads ownership flag. |
 | Cosmetic selection methods | Select stall theme, cup pack, and signboard pack without changing formulas. |
+| `ChaiGame.SetAnalyticsConsent(bool)` | Stores opt-in analytics consent. |
+| `ChaiGame.SetAdsConsent(bool)` | Stores opt-in ad consent for future SDK adapters. |
+| `ChaiGame.SetCrashReportingConsent(bool)` | Stores opt-in crash-reporting consent. |
+| `ChaiGame.AcknowledgePrivacyPolicy()` | Marks the configured privacy policy as opened. |
+| `ChaiGame.RecordAnalyticsEvent(name, detail)` | Adds a local analytics event only when consent is on. |
+| `ChaiGame.RecordCrashReport(message)` | Stores the latest local crash report only when consent is on. |
+| `ChaiGame.ExportCloudSavePayload()` | Creates a JSON save payload and increments the local export count. |
+| `ChaiGame.TryImportCloudSavePayload(payload)` | Imports a JSON payload through the normal save codec. |
+| `ChaiGame.EvaluateAchievements()` | Unlocks local achievement IDs from progression state. |
 
 ## Content Expansion Steps
 
@@ -224,6 +234,7 @@ Current edit-mode tests validate:
 - Prestige reset and skill effects.
 - Optional event activation, save fields, and timed multipliers.
 - Optional monetization rewards, no-ads flag, and cosmetic save fields.
+- Production readiness: consent-gated analytics/crash state, cloud-save export/import, privacy state, and local achievements.
 - JSON content parsing and validation.
 
 Use edit-mode tests for economy because they are fast and do not require scene loading.
@@ -245,4 +256,7 @@ Before Android release:
 - Confirm save path works on device.
 - Confirm no debug-only UI.
 - Confirm audio/haptics settings if added.
+- Replace the placeholder privacy policy URL before public testing.
+- Replace local production adapters with real cloud, Play Games, analytics, crash-reporting, ad, and billing SDKs as product scope requires.
+- Revisit Play Integrity when adding a backend, competitive surface, or real-money validation.
 - Test on a low-end Android device.

@@ -18,6 +18,7 @@ namespace ChaiEmpire
         public EventState Event = new EventState();
         public MonetizationState Monetization = new MonetizationState();
         public CosmeticState Cosmetics = CosmeticState.CreateDefault();
+        public ProductionState Production = new ProductionState();
         public List<UpgradeLevelEntry> UpgradeLevels = new List<UpgradeLevelEntry>();
         public List<LocationUnlockEntry> UnlockedLocations = new List<LocationUnlockEntry>();
 
@@ -33,7 +34,8 @@ namespace ChaiEmpire
                 Prestige = new PrestigeState(),
                 Event = new EventState(),
                 Monetization = new MonetizationState(),
-                Cosmetics = CosmeticState.CreateDefault()
+                Cosmetics = CosmeticState.CreateDefault(),
+                Production = new ProductionState()
             };
             state.UnlockLocation("gali-tapri");
             return state;
@@ -169,6 +171,94 @@ namespace ChaiEmpire
                 SignboardPackId = "painted-board"
             };
         }
+    }
+
+    [Serializable]
+    public sealed class ProductionState
+    {
+        private const int MaxAnalyticsEvents = 50;
+
+        public bool AnalyticsConsent;
+        public bool AdsConsent;
+        public bool CrashReportingConsent;
+        public bool PrivacyPolicyAcknowledged;
+        public int CloudSaveExportCount;
+        public string LastCrashReport;
+        public List<AchievementEntry> Achievements = new List<AchievementEntry>();
+        public List<AnalyticsEventEntry> AnalyticsEvents = new List<AnalyticsEventEntry>();
+
+        public bool IsAchievementUnlocked(string achievementId)
+        {
+            EnsureLists();
+            foreach (AchievementEntry entry in Achievements)
+            {
+                if (entry.Id == achievementId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool UnlockAchievement(string achievementId)
+        {
+            if (string.IsNullOrWhiteSpace(achievementId) || IsAchievementUnlocked(achievementId))
+            {
+                return false;
+            }
+
+            Achievements.Add(new AchievementEntry
+            {
+                Id = achievementId,
+                UnlockedUtcTicks = DateTime.UtcNow.Ticks
+            });
+            return true;
+        }
+
+        public void RecordAnalyticsEvent(string name, string detail)
+        {
+            EnsureLists();
+            if (AnalyticsEvents.Count >= MaxAnalyticsEvents)
+            {
+                AnalyticsEvents.RemoveAt(0);
+            }
+
+            AnalyticsEvents.Add(new AnalyticsEventEntry
+            {
+                Name = name,
+                Detail = detail,
+                UtcTicks = DateTime.UtcNow.Ticks
+            });
+        }
+
+        public void EnsureLists()
+        {
+            if (Achievements == null)
+            {
+                Achievements = new List<AchievementEntry>();
+            }
+
+            if (AnalyticsEvents == null)
+            {
+                AnalyticsEvents = new List<AnalyticsEventEntry>();
+            }
+        }
+    }
+
+    [Serializable]
+    public sealed class AchievementEntry
+    {
+        public string Id;
+        public long UnlockedUtcTicks;
+    }
+
+    [Serializable]
+    public sealed class AnalyticsEventEntry
+    {
+        public string Name;
+        public long UtcTicks;
+        public string Detail;
     }
 
     [Serializable]

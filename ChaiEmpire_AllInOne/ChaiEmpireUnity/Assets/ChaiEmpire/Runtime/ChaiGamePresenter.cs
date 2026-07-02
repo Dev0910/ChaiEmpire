@@ -63,6 +63,17 @@ namespace ChaiEmpire
         private Text sponsorBoostLabel;
         private Button noAdsButton;
         private Text noAdsLabel;
+        private Text productionText;
+        private Button privacyPolicyButton;
+        private Text privacyPolicyLabel;
+        private Button analyticsConsentButton;
+        private Text analyticsConsentLabel;
+        private Button adsConsentButton;
+        private Text adsConsentLabel;
+        private Button crashConsentButton;
+        private Text crashConsentLabel;
+        private Button cloudSaveExportButton;
+        private Text cloudSaveExportLabel;
         private Button stallThemeButton;
         private Text stallThemeLabel;
         private Button cupPackButton;
@@ -244,6 +255,7 @@ namespace ChaiEmpire
             BuildActions(contentObject.transform);
             BuildEventPanel(contentObject.transform);
             BuildMonetizationPanel(contentObject.transform);
+            BuildProductionPanel(contentObject.transform);
             BuildUpgradeList(contentObject.transform);
             BuildLocationList(contentObject.transform);
             BuildPrestige(contentObject.transform);
@@ -640,6 +652,38 @@ namespace ChaiEmpire
             signboardPackButton.onClick.AddListener(HandleCycleSignboardPack);
         }
 
+        private void BuildProductionPanel(Transform parent)
+        {
+            GameObject section = CreatePanel("Privacy And Services", parent, new Color(0.90f, 0.94f, 0.96f), 560);
+            VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(22, 22, 18, 18);
+            layout.spacing = 8;
+
+            Text title = CreateText("Production Title", section.transform, "Privacy & Services", 34, Teal, TextAnchor.MiddleLeft);
+            title.fontStyle = FontStyle.Bold;
+            productionText = CreateText("Production Status", section.transform, string.Empty, 23, Ink, TextAnchor.MiddleLeft);
+
+            privacyPolicyButton = CreateButton("Privacy Policy", section.transform, "Privacy Policy", 22, Teal, 64);
+            privacyPolicyLabel = privacyPolicyButton.GetComponentInChildren<Text>();
+            privacyPolicyButton.onClick.AddListener(HandlePrivacyPolicy);
+
+            analyticsConsentButton = CreateButton("Analytics Consent", section.transform, "Analytics Off", 22, Leaf, 62);
+            analyticsConsentLabel = analyticsConsentButton.GetComponentInChildren<Text>();
+            analyticsConsentButton.onClick.AddListener(HandleAnalyticsConsentToggle);
+
+            adsConsentButton = CreateButton("Ads Consent", section.transform, "Ads Consent Off", 22, Leaf, 62);
+            adsConsentLabel = adsConsentButton.GetComponentInChildren<Text>();
+            adsConsentButton.onClick.AddListener(HandleAdsConsentToggle);
+
+            crashConsentButton = CreateButton("Crash Consent", section.transform, "Crash Reports Off", 22, Rose, 62);
+            crashConsentLabel = crashConsentButton.GetComponentInChildren<Text>();
+            crashConsentButton.onClick.AddListener(HandleCrashConsentToggle);
+
+            cloudSaveExportButton = CreateButton("Cloud Save Export", section.transform, "Export Cloud Save", 22, Saffron, 66);
+            cloudSaveExportLabel = cloudSaveExportButton.GetComponentInChildren<Text>();
+            cloudSaveExportButton.onClick.AddListener(HandleCloudSaveExport);
+        }
+
         private void BuildSettings(Transform parent)
         {
             GameObject section = CreatePanel("Settings", parent, new Color(0.93f, 0.94f, 0.89f), 258);
@@ -690,6 +734,7 @@ namespace ChaiEmpire
             SetButtonColor(rushButton, rushButton.interactable ? Rose : Disabled);
             RefreshEvents();
             RefreshMonetization();
+            RefreshProduction();
 
             foreach (UpgradeRow row in upgradeRows)
             {
@@ -864,6 +909,39 @@ namespace ChaiEmpire
             signboardPackLabel.text = "Sign: " + ChaiCosmetics.GetDisplayName(ChaiCosmetics.SignboardPacks, cosmetics.SignboardPackId);
         }
 
+        private void RefreshProduction()
+        {
+            if (productionText == null)
+            {
+                return;
+            }
+
+            int unlockedCount = game.GetUnlockedAchievements().Count;
+            ProductionState production = game.State.Production;
+            productionText.text = "Privacy " + (production.PrivacyPolicyAcknowledged ? "Seen" : "Pending") +
+                "  |  Achievements " + unlockedCount + "/" + ChaiProductionServices.Achievements.Count + "\n" +
+                "Analytics " + (production.AnalyticsConsent ? "On" : "Off") +
+                "  |  Ads " + (production.AdsConsent ? "On" : "Off") +
+                "  |  Crash " + (production.CrashReportingConsent ? "On" : "Off") + "\n" +
+                "Cloud exports " + Math.Max(0, production.CloudSaveExportCount);
+
+            privacyPolicyLabel.text = production.PrivacyPolicyAcknowledged ? "Privacy Policy Seen" : "Privacy Policy";
+            SetButtonColor(privacyPolicyButton, production.PrivacyPolicyAcknowledged ? Leaf : Teal);
+
+            analyticsConsentLabel.text = production.AnalyticsConsent ? "Analytics On" : "Analytics Off";
+            SetButtonColor(analyticsConsentButton, production.AnalyticsConsent ? Leaf : Disabled);
+
+            adsConsentLabel.text = production.AdsConsent ? "Ads Consent On" : "Ads Consent Off";
+            SetButtonColor(adsConsentButton, production.AdsConsent ? Leaf : Disabled);
+
+            crashConsentLabel.text = production.CrashReportingConsent ? "Crash Reports On" : "Crash Reports Off";
+            SetButtonColor(crashConsentButton, production.CrashReportingConsent ? Leaf : Disabled);
+
+            cloudSaveExportLabel.text = "Export Cloud Save";
+            cloudSaveExportButton.interactable = true;
+            SetButtonColor(cloudSaveExportButton, Saffron);
+        }
+
         private void HandleHapticsToggle()
         {
             PlayButtonPressSound();
@@ -1033,6 +1111,55 @@ namespace ChaiEmpire
                 SetStatus("No Ads already owned");
             }
 
+            RefreshAll();
+        }
+
+        private void HandlePrivacyPolicy()
+        {
+            PlayButtonPressSound();
+            game.AcknowledgePrivacyPolicy();
+            ChaiSaveRepository.Save(game.State);
+            Application.OpenURL(ChaiProductionServices.PrivacyPolicyUrl);
+            SetStatus("Privacy policy opened");
+            RefreshAll();
+        }
+
+        private void HandleAnalyticsConsentToggle()
+        {
+            PlayButtonPressSound();
+            bool enabled = !game.State.Production.AnalyticsConsent;
+            game.SetAnalyticsConsent(enabled);
+            ChaiSaveRepository.Save(game.State);
+            SetStatus(enabled ? "Analytics on" : "Analytics off");
+            RefreshAll();
+        }
+
+        private void HandleAdsConsentToggle()
+        {
+            PlayButtonPressSound();
+            bool enabled = !game.State.Production.AdsConsent;
+            game.SetAdsConsent(enabled);
+            ChaiSaveRepository.Save(game.State);
+            SetStatus(enabled ? "Ads consent on" : "Ads consent off");
+            RefreshAll();
+        }
+
+        private void HandleCrashConsentToggle()
+        {
+            PlayButtonPressSound();
+            bool enabled = !game.State.Production.CrashReportingConsent;
+            game.SetCrashReportingConsent(enabled);
+            ChaiSaveRepository.Save(game.State);
+            SetStatus(enabled ? "Crash reports on" : "Crash reports off");
+            RefreshAll();
+        }
+
+        private void HandleCloudSaveExport()
+        {
+            PlayButtonPressSound();
+            GUIUtility.systemCopyBuffer = game.ExportCloudSavePayload();
+            ChaiSaveRepository.Save(game.State);
+            SetStatus("Cloud save copied");
             RefreshAll();
         }
 

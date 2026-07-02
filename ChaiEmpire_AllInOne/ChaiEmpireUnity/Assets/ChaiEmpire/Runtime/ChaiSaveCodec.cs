@@ -38,6 +38,17 @@ namespace ChaiEmpire
                     cupPackId = state.Cosmetics?.CupPackId,
                     signboardPackId = state.Cosmetics?.SignboardPackId
                 },
+                production = new ProductionDto
+                {
+                    analyticsConsent = state.Production?.AnalyticsConsent ?? false,
+                    adsConsent = state.Production?.AdsConsent ?? false,
+                    crashReportingConsent = state.Production?.CrashReportingConsent ?? false,
+                    privacyPolicyAcknowledged = state.Production?.PrivacyPolicyAcknowledged ?? false,
+                    cloudSaveExportCount = Math.Max(0, state.Production?.CloudSaveExportCount ?? 0),
+                    lastCrashReport = state.Production?.LastCrashReport,
+                    achievements = new List<AchievementDto>(),
+                    analyticsEvents = new List<AnalyticsEventDto>()
+                },
                 prestige = new PrestigeDto
                 {
                     masalaLegacy = SerializeNumber(state.Prestige.MasalaLegacy),
@@ -61,6 +72,28 @@ namespace ChaiEmpire
             foreach (PrestigeSkillEntry entry in state.Prestige.Skills)
             {
                 dto.prestige.skills.Add(new PrestigeSkillDto { id = entry.Id, level = entry.Level });
+            }
+
+            if (state.Production?.Achievements != null)
+            {
+                foreach (AchievementEntry entry in state.Production.Achievements)
+                {
+                    if (entry != null && !string.IsNullOrWhiteSpace(entry.Id))
+                    {
+                        dto.production.achievements.Add(new AchievementDto { id = entry.Id, unlockedUtcTicks = entry.UnlockedUtcTicks });
+                    }
+                }
+            }
+
+            if (state.Production?.AnalyticsEvents != null)
+            {
+                foreach (AnalyticsEventEntry entry in state.Production.AnalyticsEvents)
+                {
+                    if (entry != null && !string.IsNullOrWhiteSpace(entry.Name))
+                    {
+                        dto.production.analyticsEvents.Add(new AnalyticsEventDto { name = entry.Name, utcTicks = entry.UtcTicks, detail = entry.Detail });
+                    }
+                }
             }
 
             return JsonUtility.ToJson(dto, true);
@@ -134,6 +167,17 @@ namespace ChaiEmpire
                     CupPackId = NormalizeCosmeticId(ChaiCosmetics.CupPacks, dto.cosmetics?.cupPackId),
                     SignboardPackId = NormalizeCosmeticId(ChaiCosmetics.SignboardPacks, dto.cosmetics?.signboardPackId)
                 },
+                Production = new ProductionState
+                {
+                    AnalyticsConsent = dto.production?.analyticsConsent ?? false,
+                    AdsConsent = dto.production?.adsConsent ?? false,
+                    CrashReportingConsent = dto.production?.crashReportingConsent ?? false,
+                    PrivacyPolicyAcknowledged = dto.production?.privacyPolicyAcknowledged ?? false,
+                    CloudSaveExportCount = Math.Max(0, dto.production?.cloudSaveExportCount ?? 0),
+                    LastCrashReport = dto.production?.lastCrashReport,
+                    Achievements = new List<AchievementEntry>(),
+                    AnalyticsEvents = new List<AnalyticsEventEntry>()
+                },
                 Prestige = new PrestigeState
                 {
                     MasalaLegacy = ParseNumber(dto.prestige?.masalaLegacy),
@@ -178,6 +222,28 @@ namespace ChaiEmpire
                     if (entry != null && !string.IsNullOrWhiteSpace(entry.id))
                     {
                         state.Prestige.Skills.Add(new PrestigeSkillEntry { Id = entry.id, Level = entry.level });
+                    }
+                }
+            }
+
+            if (dto.production?.achievements != null)
+            {
+                foreach (AchievementDto entry in dto.production.achievements)
+                {
+                    if (entry != null && !string.IsNullOrWhiteSpace(entry.id))
+                    {
+                        state.Production.Achievements.Add(new AchievementEntry { Id = entry.id, UnlockedUtcTicks = entry.unlockedUtcTicks });
+                    }
+                }
+            }
+
+            if (dto.production?.analyticsEvents != null)
+            {
+                foreach (AnalyticsEventDto entry in dto.production.analyticsEvents)
+                {
+                    if (entry != null && !string.IsNullOrWhiteSpace(entry.name))
+                    {
+                        state.Production.AnalyticsEvents.Add(new AnalyticsEventEntry { Name = entry.name, UtcTicks = entry.utcTicks, Detail = entry.detail });
                     }
                 }
             }
@@ -244,6 +310,7 @@ namespace ChaiEmpire
             public EventDto eventState;
             public MonetizationDto monetization;
             public CosmeticDto cosmetics;
+            public ProductionDto production;
             public PrestigeDto prestige;
             public List<UpgradeLevelDto> upgradeLevels;
             public List<LocationUnlockDto> unlockedLocations;
@@ -276,6 +343,19 @@ namespace ChaiEmpire
         }
 
         [Serializable]
+        private sealed class ProductionDto
+        {
+            public bool analyticsConsent;
+            public bool adsConsent;
+            public bool crashReportingConsent;
+            public bool privacyPolicyAcknowledged;
+            public int cloudSaveExportCount;
+            public string lastCrashReport;
+            public List<AchievementDto> achievements;
+            public List<AnalyticsEventDto> analyticsEvents;
+        }
+
+        [Serializable]
         private sealed class PrestigeDto
         {
             public string masalaLegacy;
@@ -301,6 +381,21 @@ namespace ChaiEmpire
         {
             public string id;
             public int level;
+        }
+
+        [Serializable]
+        private sealed class AchievementDto
+        {
+            public string id;
+            public long unlockedUtcTicks;
+        }
+
+        [Serializable]
+        private sealed class AnalyticsEventDto
+        {
+            public string name;
+            public long utcTicks;
+            public string detail;
         }
     }
 }

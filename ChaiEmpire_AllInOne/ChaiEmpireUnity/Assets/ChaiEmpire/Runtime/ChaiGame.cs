@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BreakInfinity;
 
 namespace ChaiEmpire
@@ -21,6 +22,7 @@ namespace ChaiEmpire
             this.content = content;
             State = state;
             EnsureStateDefaults();
+            EvaluateAchievements();
         }
 
         public ChaiGameState State { get; private set; }
@@ -164,6 +166,8 @@ namespace ChaiEmpire
 
             State.Rupees -= cost;
             State.SetUpgradeLevel(upgradeId, currentLevel + 1);
+            EvaluateAchievements();
+            RecordAnalyticsEvent("upgrade-bought", upgradeId);
             return true;
         }
 
@@ -182,6 +186,8 @@ namespace ChaiEmpire
 
             State.Rupees -= unlockCost;
             State.UnlockLocation(locationId);
+            EvaluateAchievements();
+            RecordAnalyticsEvent("location-unlocked", locationId);
             return true;
         }
 
@@ -227,8 +233,11 @@ namespace ChaiEmpire
             freshState.Prestige = preservedPrestige;
             freshState.Monetization = GetMonetizationState();
             freshState.Cosmetics = GetCosmeticState();
+            freshState.Production = GetProductionState();
             State = freshState;
 
+            EvaluateAchievements();
+            RecordAnalyticsEvent("prestige", "secret-masala");
             result = new PrestigeResult(true, gainedLegacy, gainedSkillPoints, "Secret Masala preserved. The new stall opens stronger.");
             return true;
         }
@@ -285,6 +294,7 @@ namespace ChaiEmpire
             eventState.ActiveEventId = definition.Id;
             eventState.RemainingSeconds = definition.DurationSeconds;
             eventState.CooldownSeconds = 0;
+            RecordAnalyticsEvent("event-started", definition.Id);
             return true;
         }
 
@@ -297,6 +307,7 @@ namespace ChaiEmpire
 
             Earn(baseReward);
             GetMonetizationState().RewardedOfflineBonusClaims++;
+            RecordAnalyticsEvent("rewarded-offline-bonus", "claimed");
             return true;
         }
 
@@ -309,6 +320,7 @@ namespace ChaiEmpire
             }
 
             monetization.ProductionBoostRemainingSeconds = RewardedProductionBoostDurationSeconds;
+            RecordAnalyticsEvent("rewarded-production-boost", "started");
             return true;
         }
 
@@ -321,6 +333,8 @@ namespace ChaiEmpire
             }
 
             monetization.NoAdsPurchased = true;
+            EvaluateAchievements();
+            RecordAnalyticsEvent("no-ads-purchased", "local");
             return true;
         }
 
@@ -440,6 +454,118 @@ namespace ChaiEmpire
             return GetMonetizationState().ProductionBoostRemainingSeconds > 0 ? RewardedProductionBoostMultiplier : 1;
         }
 
+        public void SetAnalyticsConsent(bool enabled)
+        {
+            GetProductionState().AnalyticsConsent = enabled;
+        }
+
+        public void SetAdsConsent(bool enabled)
+        {
+            GetProductionState().AdsConsent = enabled;
+        }
+
+        public void SetCrashReportingConsent(bool enabled)
+        {
+            GetProductionState().CrashReportingConsent = enabled;
+        }
+
+        public void AcknowledgePrivacyPolicy()
+        {
+            GetProductionState().PrivacyPolicyAcknowledged = true;
+        }
+
+        public bool RecordAnalyticsEvent(string name, string detail = null)
+        {
+            ProductionState production = GetProductionState();
+            if (!production.AnalyticsConsent || string.IsNullOrWhiteSpace(name))
+            {
+                return false;
+            }
+
+            production.RecordAnalyticsEvent(name.Trim(), string.IsNullOrWhiteSpace(detail) ? null : detail.Trim());
+            return true;
+        }
+
+        public bool RecordCrashReport(string message)
+        {
+            ProductionState production = GetProductionState();
+            if (!production.CrashReportingConsent || string.IsNullOrWhiteSpace(message))
+            {
+                return false;
+            }
+
+            string trimmed = message.Trim();
+            production.LastCrashReport = trimmed.Length > 240 ? trimmed.Substring(0, 240) : trimmed;
+            RecordAnalyticsEvent("crash-report", "local");
+            return true;
+        }
+
+        public IReadOnlyList<AchievementEntry> GetUnlockedAchievements()
+        {
+            ProductionState production = GetProductionState();
+            production.EnsureLists();
+            return production.Achievements;
+        }
+
+        public string ExportCloudSavePayload()
+        {
+            ProductionState production = GetProductionState();
+            production.CloudSaveExportCount++;
+            RecordAnalyticsEvent("cloud-save-exported", "local");
+            return ChaiSaveCodec.ToJson(State);
+        }
+
+        public bool TryImportCloudSavePayload(string payload)
+        {
+            if (string.IsNullOrWhiteSpace(payload))
+            {
+                return false;
+            }
+
+            if (!ChaiSaveCodec.TryFromJson(payload, out ChaiGameState importedState))
+            {
+                return false;
+            }
+
+            State = importedState ?? ChaiGameState.CreateNew();
+            EnsureStateDefaults();
+            EvaluateAchievements();
+            RecordAnalyticsEvent("cloud-save-imported", "local");
+            return true;
+        }
+
+        public void EvaluateAchievements()
+        {
+            foreach (UpgradeLevelEntry entry in State.UpgradeLevels)
+            {
+                if (entry.Level > 0)
+                {
+                    UnlockProductionAchievement("first-upgrade");
+                    break;
+                }
+            }
+
+            if (State.IsLocationUnlocked("bus-stand"))
+            {
+                UnlockProductionAchievement("bus-stand-open");
+            }
+
+            if (GetEventState().CompletedCount > 0)
+            {
+                UnlockProductionAchievement("first-event");
+            }
+
+            if (GetPrestigeState().MasalaLegacy > BigDouble.Zero)
+            {
+                UnlockProductionAchievement("secret-masala");
+            }
+
+            if (GetMonetizationState().NoAdsPurchased)
+            {
+                UnlockProductionAchievement("no-ads-owned");
+            }
+        }
+
         private BigDouble GetUpgradeCost(UpgradeDefinition upgrade, int currentLevel)
         {
             return ApplyCostReduction(upgrade.GetCost(currentLevel), PrestigeSkillEffect.UpgradeCostReduction);
@@ -521,8 +647,29 @@ namespace ChaiEmpire
             return State.Cosmetics;
         }
 
+        private ProductionState GetProductionState()
+        {
+            if (State.Production == null)
+            {
+                State.Production = new ProductionState();
+            }
+
+            State.Production.EnsureLists();
+            return State.Production;
+        }
+
         private void EnsureStateDefaults()
         {
+            if (State.UpgradeLevels == null)
+            {
+                State.UpgradeLevels = new List<UpgradeLevelEntry>();
+            }
+
+            if (State.UnlockedLocations == null)
+            {
+                State.UnlockedLocations = new List<LocationUnlockEntry>();
+            }
+
             if (State.Prestige == null)
             {
                 State.Prestige = new PrestigeState();
@@ -542,6 +689,8 @@ namespace ChaiEmpire
             {
                 State.Cosmetics = CosmeticState.CreateDefault();
             }
+
+            GetProductionState();
         }
 
         private void UpdateEventTimers(double deltaSeconds)
@@ -562,6 +711,8 @@ namespace ChaiEmpire
                     eventState.ActiveEventId = null;
                     eventState.CooldownSeconds = activeEvent.CooldownSeconds;
                     eventState.CompletedCount++;
+                    EvaluateAchievements();
+                    RecordAnalyticsEvent("event-completed", activeEvent.Id);
                 }
 
                 return;
@@ -616,6 +767,19 @@ namespace ChaiEmpire
             }
 
             return (int)value;
+        }
+
+        private bool UnlockProductionAchievement(string achievementId)
+        {
+            foreach (ChaiAchievementDefinition definition in ChaiProductionServices.Achievements)
+            {
+                if (definition.Id == achievementId)
+                {
+                    return GetProductionState().UnlockAchievement(achievementId);
+                }
+            }
+
+            return false;
         }
 
         private void Earn(BigDouble amount)
