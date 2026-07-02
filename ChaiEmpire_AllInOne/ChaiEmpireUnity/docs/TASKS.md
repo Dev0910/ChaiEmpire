@@ -11,12 +11,12 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
   - [x] Run targeted EditMode tests.
   - [x] Inspect Unity logs.
   - [x] Commit and push.
-- [ ] Tutorial
+- [x] Tutorial
   - [x] Add a short tutorial overlay or guided first taps.
   - [x] Verify a new player can identify the first action quickly.
   - [x] Add or update relevant tests.
   - [x] Run play check and inspect logs.
-  - [ ] Update docs, commit, and push.
+  - [x] Update docs, commit, and push.
 - [ ] Early balance pass
   - [ ] Add reset-save option in settings.
   - [ ] Add number formatter tests.
