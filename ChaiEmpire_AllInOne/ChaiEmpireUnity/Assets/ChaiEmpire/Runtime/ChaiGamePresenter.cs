@@ -55,6 +55,8 @@ namespace ChaiEmpire
         private Text statusText;
         private Text prestigeText;
         private Button rushButton;
+        private Button hapticsToggleButton;
+        private Text hapticsToggleLabel;
         private Button resetSaveButton;
         private Text resetSaveLabel;
         private float refreshTimer;
@@ -62,6 +64,7 @@ namespace ChaiEmpire
         private float statusTimer;
         private float resetConfirmTimer;
         private float steamTimer;
+        private bool hapticsEnabled = true;
         private bool resetSaveArmed;
 
         private void Start()
@@ -446,6 +449,7 @@ namespace ChaiEmpire
                 PlayButtonPressSound();
                 if (game.TryTriggerRushHour())
                 {
+                    TriggerHaptic();
                     SetStatus("Rush hour: 2x for 20 sec");
                     RefreshAll();
                 }
@@ -475,6 +479,7 @@ namespace ChaiEmpire
                     if (game.TryBuyUpgrade(captured.Id))
                     {
                         PlayPurchaseSound();
+                        TriggerHaptic();
                         SetStatus(captured.DisplayName + " upgraded");
                         RefreshAll();
                     }
@@ -509,6 +514,7 @@ namespace ChaiEmpire
                     if (game.TryUnlockLocation(captured.Id))
                     {
                         PlayUnlockSound();
+                        TriggerHaptic();
                         SetStatus(captured.DisplayName + " unlocked");
                         RefreshAll();
                     }
@@ -532,13 +538,17 @@ namespace ChaiEmpire
 
         private void BuildSettings(Transform parent)
         {
-            GameObject section = CreatePanel("Settings", parent, new Color(0.93f, 0.94f, 0.89f), 170);
+            GameObject section = CreatePanel("Settings", parent, new Color(0.93f, 0.94f, 0.89f), 258);
             VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(22, 22, 18, 18);
             layout.spacing = 12;
 
             Text title = CreateText("Settings Title", section.transform, "Settings", 34, Ink, TextAnchor.MiddleLeft);
             title.fontStyle = FontStyle.Bold;
+
+            hapticsToggleButton = CreateButton("Haptics Toggle", section.transform, "Haptics On", 24, Leaf, 66);
+            hapticsToggleLabel = hapticsToggleButton.GetComponentInChildren<Text>();
+            hapticsToggleButton.onClick.AddListener(HandleHapticsToggle);
 
             resetSaveButton = CreateButton("Reset Save", section.transform, "Reset Save", 24, Rose, 76);
             resetSaveLabel = resetSaveButton.GetComponentInChildren<Text>();
@@ -629,8 +639,18 @@ namespace ChaiEmpire
                 return;
             }
 
+            hapticsToggleLabel.text = hapticsEnabled ? "Haptics On" : "Haptics Off";
+            SetButtonColor(hapticsToggleButton, hapticsEnabled ? Leaf : Disabled);
             resetSaveLabel.text = resetSaveArmed ? "Confirm Reset" : "Reset Save";
             SetButtonColor(resetSaveButton, resetSaveArmed ? Rose : Teal);
+        }
+
+        private void HandleHapticsToggle()
+        {
+            PlayButtonPressSound();
+            hapticsEnabled = !hapticsEnabled;
+            SetStatus(hapticsEnabled ? "Haptics on" : "Haptics off");
+            RefreshSettings();
         }
 
         private void HandleTutorialPrimary()
@@ -647,6 +667,7 @@ namespace ChaiEmpire
                     if (game.TryBuyUpgrade(ChaiTutorial.FirstUpgradeId))
                     {
                         PlayPurchaseSound();
+                        TriggerHaptic();
                         SetStatus("Strong Tea Leaves upgraded");
                     }
                     break;
@@ -708,6 +729,14 @@ namespace ChaiEmpire
             }
 
             audioSource.PlayOneShot(clip, volume);
+        }
+
+        private void TriggerHaptic()
+        {
+            if (hapticsEnabled)
+            {
+                Handheld.Vibrate();
+            }
         }
 
         private void ShowOfflineReward(OfflineReward reward)

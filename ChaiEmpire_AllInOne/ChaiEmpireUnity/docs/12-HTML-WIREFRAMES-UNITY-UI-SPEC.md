@@ -308,7 +308,7 @@ Keep production feedback lightweight for low-end Android devices:
 | Serve Queue | Short status toast and rupee float. |
 | Buy Upgrade | Card pulse, level increment, toast, generated purchase cue. |
 | Unlock Location | Location card unlock pulse, header location update, generated unlock cue. |
-| Rush Hour | Timer/progress meter, 2x state on action area. |
+| Rush Hour | Timer/progress meter, 2x state on action area, optional haptic. |
 | Offline Claim | Modal dismiss and brief rupee total pulse. |
 
 ## Accessibility And Mobile Rules

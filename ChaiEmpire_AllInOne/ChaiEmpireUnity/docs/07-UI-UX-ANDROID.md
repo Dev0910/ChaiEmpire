@@ -212,6 +212,13 @@ Current prestige is preview-only.
 
 Current settings include a local save reset button.
 
+Settings controls:
+
+| Control | Behavior |
+| --- | --- |
+| `Haptics Toggle` | Switches in-session haptics between `Haptics On` and `Haptics Off`. |
+| `Reset Save` | Starts the two-step local save reset flow. |
+
 Reset behavior:
 
 1. First tap changes the button to `Confirm Reset`.
@@ -251,7 +258,7 @@ Future polish:
 - Add floating rupee text.
 - Add queue/customer animation.
 - Add distinct rush sound.
-- Add haptics for major unlocks.
+- Persist haptic preference if settings persistence is added later.
 
 ### Audio
 
@@ -265,6 +272,18 @@ Current behavior:
 - The button clip plays before the command-specific action runs.
 - Purchase/unlock clips play only after the economy action succeeds.
 - The nested project enables `com.unity.modules.audio` for `AudioSource` and `AudioClip`.
+
+### Haptics
+
+Haptics are optional and controlled by the Settings `Haptics Toggle`.
+
+Current behavior:
+
+- Haptics default to on for the current session.
+- Successful upgrade purchases call `Handheld.Vibrate()`.
+- Successful location unlocks call `Handheld.Vibrate()`.
+- Successful Rush Hour activation calls `Handheld.Vibrate()`.
+- The toggle state is not saved yet, so this does not change save data.
 
 ## Mobile Readability Rules
 
