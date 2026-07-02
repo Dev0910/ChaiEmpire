@@ -49,14 +49,14 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 
 ## Phase 4: Prestige And Skill Tree
 
-- [ ] Add prestige confirmation UI.
-- [ ] Add reset logic.
-- [ ] Add skill definitions.
-- [ ] Add skill tree UI.
-- [ ] Apply skill effects to formulas.
-- [ ] Add prestige tests.
-- [ ] Add save migration if needed.
-- [ ] Run tests/play checks, inspect logs, update docs, commit, and push.
+- [x] Add prestige confirmation UI.
+- [x] Add reset logic.
+- [x] Add skill definitions.
+- [x] Add skill tree UI.
+- [x] Apply skill effects to formulas.
+- [x] Add prestige tests.
+- [x] Add save migration if needed.
+- [x] Run tests/play checks, inspect logs, update docs, commit, and push.
 
 ## Phase 5: Events And Live Content
 
