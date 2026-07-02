@@ -37,7 +37,7 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 - [x] Add purchase/unlock sounds.
 - [x] Add optional haptics.
 - [x] Review and document all imported or generated assets.
-- [ ] Run visual/play checks, inspect logs, update docs, commit, and push.
+- [x] Run visual/play checks, inspect logs, update docs, commit, and push.
 
 ## Phase 3: Data-Driven Content
 
