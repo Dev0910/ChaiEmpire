@@ -19,6 +19,7 @@ namespace ChaiEmpire
         private static readonly Color Leaf = new Color(0.18f, 0.50f, 0.31f);
         private static readonly Color Rose = new Color(0.65f, 0.17f, 0.27f);
         private static readonly Color Disabled = new Color(0.45f, 0.48f, 0.48f);
+        private static Sprite circleSprite;
 
         private readonly List<UpgradeRow> upgradeRows = new List<UpgradeRow>();
         private readonly List<LocationRow> locationRows = new List<LocationRow>();
@@ -185,6 +186,7 @@ namespace ChaiEmpire
             scroll.content = contentRect;
 
             BuildHeader(contentObject.transform);
+            BuildStallArt(contentObject.transform);
             BuildStats(contentObject.transform);
             BuildTutorial(contentObject.transform);
             BuildActions(contentObject.transform);
@@ -225,6 +227,39 @@ namespace ChaiEmpire
             title.resizeTextForBestFit = true;
             title.resizeTextMinSize = 36;
             locationText = CreateText("Location", header.transform, string.Empty, 26, new Color(0.88f, 1f, 0.96f), TextAnchor.MiddleLeft);
+        }
+
+        private void BuildStallArt(Transform parent)
+        {
+            Color backdrop = new Color(0.99f, 0.84f, 0.58f);
+            Color counter = new Color(0.36f, 0.18f, 0.10f);
+            Color stove = new Color(0.16f, 0.18f, 0.18f);
+            Color stoveFace = new Color(0.28f, 0.30f, 0.28f);
+            Color brass = new Color(0.90f, 0.58f, 0.22f);
+            Color kettle = new Color(0.78f, 0.86f, 0.83f);
+            Color kettleShade = new Color(0.12f, 0.42f, 0.42f);
+
+            GameObject art = CreatePanel("Stall Art", parent, backdrop, 360);
+            CreateArtShape("Back Wall Glow", art.transform, new Vector2(0, 28), new Vector2(820, 250), new Color(1f, 0.91f, 0.68f), GetCircleSprite(), 0);
+            CreateArtShape("Counter Top", art.transform, new Vector2(0, -124), new Vector2(900, 56), counter, null, 0);
+            CreateArtShape("Counter Front", art.transform, new Vector2(0, -160), new Vector2(860, 58), new Color(0.48f, 0.25f, 0.13f), null, 0);
+
+            CreateArtShape("Stove Shadow", art.transform, new Vector2(0, -82), new Vector2(360, 54), new Color(0.09f, 0.10f, 0.10f, 0.35f), GetCircleSprite(), 0);
+            CreateArtShape("Stove Base", art.transform, new Vector2(0, -64), new Vector2(360, 116), stove, null, 0);
+            CreateArtShape("Stove Front", art.transform, new Vector2(0, -90), new Vector2(300, 54), stoveFace, null, 0);
+            CreateArtShape("Burner Ring", art.transform, new Vector2(0, 0), new Vector2(220, 48), new Color(0.07f, 0.08f, 0.08f), GetCircleSprite(), 0);
+            CreateArtShape("Flame Outer", art.transform, new Vector2(-10, 16), new Vector2(122, 86), Saffron, GetCircleSprite(), 0);
+            CreateArtShape("Flame Inner", art.transform, new Vector2(12, 18), new Vector2(70, 58), new Color(1f, 0.83f, 0.24f), GetCircleSprite(), 0);
+
+            CreateArtShape("Kettle Handle Outer", art.transform, new Vector2(-214, 78), new Vector2(170, 170), kettleShade, GetCircleSprite(), 0);
+            CreateArtShape("Kettle Handle Hole", art.transform, new Vector2(-214, 78), new Vector2(104, 104), backdrop, GetCircleSprite(), 0);
+            CreateArtShape("Kettle Spout", art.transform, new Vector2(215, 86), new Vector2(170, 42), kettleShade, null, -12);
+            CreateArtShape("Kettle Spout Tip", art.transform, new Vector2(300, 102), new Vector2(62, 34), kettle, GetCircleSprite(), 0);
+            CreateArtShape("Kettle Body", art.transform, new Vector2(0, 58), new Vector2(338, 184), kettle, GetCircleSprite(), 0);
+            CreateArtShape("Kettle Belly", art.transform, new Vector2(0, 42), new Vector2(256, 122), kettleShade, GetCircleSprite(), 0);
+            CreateArtShape("Kettle Highlight", art.transform, new Vector2(-72, 86), new Vector2(80, 42), new Color(1f, 0.96f, 0.82f, 0.75f), GetCircleSprite(), 0);
+            CreateArtShape("Kettle Lid", art.transform, new Vector2(0, 155), new Vector2(176, 42), brass, GetCircleSprite(), 0);
+            CreateArtShape("Kettle Knob", art.transform, new Vector2(0, 184), new Vector2(46, 34), counter, GetCircleSprite(), 0);
         }
 
         private void BuildStats(Transform parent)
@@ -658,6 +693,24 @@ namespace ChaiEmpire
             return panel;
         }
 
+        private static Image CreateArtShape(string name, Transform parent, Vector2 anchoredPosition, Vector2 size, Color color, Sprite sprite, float rotationDegrees)
+        {
+            GameObject shape = CreateChild(name, parent);
+            RectTransform rect = shape.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.5f, 0.5f);
+            rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = anchoredPosition;
+            rect.sizeDelta = size;
+            rect.localEulerAngles = new Vector3(0, 0, rotationDegrees);
+
+            Image image = shape.AddComponent<Image>();
+            image.color = color;
+            image.sprite = sprite;
+            image.raycastTarget = false;
+            return image;
+        }
+
         private static Button CreateButton(string name, Transform parent, string text, int fontSize, Color color, float height)
         {
             GameObject buttonObject = CreateChild(name, parent);
@@ -732,6 +785,43 @@ namespace ChaiEmpire
             }
 
             return font;
+        }
+
+        private static Sprite GetCircleSprite()
+        {
+            if (circleSprite != null)
+            {
+                return circleSprite;
+            }
+
+            const int size = 64;
+            const float radius = (size - 1) * 0.5f;
+            Texture2D texture = new Texture2D(size, size, TextureFormat.ARGB32, false)
+            {
+                name = "Chai Empire Procedural Circle",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+
+            Color32[] pixels = new Color32[size * size];
+            Color32 clear = new Color32(255, 255, 255, 0);
+            Color32 fill = new Color32(255, 255, 255, 255);
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - radius;
+                    float dy = y - radius;
+                    pixels[y * size + x] = (dx * dx + dy * dy) <= radius * radius ? fill : clear;
+                }
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply();
+            circleSprite = Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+            circleSprite.name = "Chai Empire Procedural Circle";
+            return circleSprite;
         }
 
         private static void EnsureEventSystem()

@@ -122,6 +122,7 @@ Recommended production structure:
 | Region | Content | Behavior |
 | --- | --- | --- |
 | Header | `Chai Empire`, current highest location, demand multiplier. | Always visible at top of scroll. |
+| Stall Art | Procedural kettle, stove, burner, and flame shapes. | Static first-screen visual anchor; named objects support later steam animation. |
 | Stats | Rupees, passive/sec, tap value, chai served or lifetime. | Refresh at fixed cadence. |
 | Tutorial | First tap and first upgrade prompt. | Visible only until Strong Tea Leaves is bought. |
 | Actions | Tap Kettle, Serve Queue, Rush Hour. | Highest priority interaction area. |
