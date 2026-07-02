@@ -249,6 +249,7 @@ namespace ChaiEmpire
             CreateArtShape("Counter Top", art.transform, new Vector2(0, -124), new Vector2(900, 56), counter, null, 0);
             CreateArtShape("Counter Front", art.transform, new Vector2(0, -160), new Vector2(860, 58), new Color(0.48f, 0.25f, 0.13f), null, 0);
             CreateCustomerQueue(art.transform);
+            CreateUpiQrProp(art.transform);
 
             CreateArtShape("Stove Shadow", art.transform, new Vector2(0, -82), new Vector2(360, 54), new Color(0.09f, 0.10f, 0.10f, 0.35f), GetCircleSprite(), 0);
             CreateArtShape("Stove Base", art.transform, new Vector2(0, -64), new Vector2(360, 116), stove, null, 0);
@@ -286,6 +287,39 @@ namespace ChaiEmpire
             CreateArtShape(prefix + " Body", parent, basePosition + new Vector2(0, -38 * scale), new Vector2(58 * scale, 88 * scale), shirt, GetCircleSprite(), 0);
             CreateArtShape(prefix + " Head", parent, basePosition + new Vector2(0, 20 * scale), new Vector2(46 * scale, 46 * scale), skin, GetCircleSprite(), 0);
             CreateArtShape(prefix + " Hair", parent, basePosition + new Vector2(0, 36 * scale), new Vector2(50 * scale, 22 * scale), hair, GetCircleSprite(), 0);
+        }
+
+        private void CreateUpiQrProp(Transform parent)
+        {
+            Vector2 origin = new Vector2(-348, -58);
+            Color paper = new Color(0.97f, 0.95f, 0.88f);
+            Color ink = new Color(0.06f, 0.08f, 0.08f);
+
+            CreateArtShape("UPI QR Prop Backplate", parent, origin, new Vector2(124, 148), paper, null, 0);
+            CreateArtShape("UPI QR Prop Header", parent, origin + new Vector2(0, 54), new Vector2(104, 24), Teal, null, 0);
+            CreateArtShape("UPI QR Prop Code Field", parent, origin + new Vector2(0, -10), new Vector2(88, 88), Color.white, null, 0);
+            CreateQrFinder("UPI QR Finder A", parent, origin + new Vector2(-28, 18), ink);
+            CreateQrFinder("UPI QR Finder B", parent, origin + new Vector2(28, 18), ink);
+            CreateQrFinder("UPI QR Finder C", parent, origin + new Vector2(-28, -38), ink);
+
+            CreateQrDot("UPI QR Dot 01", parent, origin, -6, 8, ink);
+            CreateQrDot("UPI QR Dot 02", parent, origin, 10, 8, ink);
+            CreateQrDot("UPI QR Dot 03", parent, origin, 26, -6, ink);
+            CreateQrDot("UPI QR Dot 04", parent, origin, -8, -12, ink);
+            CreateQrDot("UPI QR Dot 05", parent, origin, 12, -26, ink);
+            CreateQrDot("UPI QR Dot 06", parent, origin, 32, -34, ink);
+        }
+
+        private void CreateQrFinder(string prefix, Transform parent, Vector2 center, Color ink)
+        {
+            CreateArtShape(prefix + " Outer", parent, center, new Vector2(24, 24), ink, null, 0);
+            CreateArtShape(prefix + " Inner", parent, center, new Vector2(12, 12), Color.white, null, 0);
+            CreateArtShape(prefix + " Core", parent, center, new Vector2(6, 6), ink, null, 0);
+        }
+
+        private void CreateQrDot(string name, Transform parent, Vector2 origin, float x, float y, Color ink)
+        {
+            CreateArtShape(name, parent, origin + new Vector2(x, y), new Vector2(8, 8), ink, null, 0);
         }
 
         private void BuildStats(Transform parent)
