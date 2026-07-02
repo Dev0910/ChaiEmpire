@@ -53,9 +53,22 @@ namespace ChaiEmpire
         private Text offlineRewardAmountText;
         private Text offlineRewardDetailText;
         private Text offlineRewardCapText;
+        private Button offlineSponsorButton;
+        private Text offlineSponsorLabel;
         private Text eventText;
         private Button eventButton;
         private Text eventButtonLabel;
+        private Text monetizationText;
+        private Button sponsorBoostButton;
+        private Text sponsorBoostLabel;
+        private Button noAdsButton;
+        private Text noAdsLabel;
+        private Button stallThemeButton;
+        private Text stallThemeLabel;
+        private Button cupPackButton;
+        private Text cupPackLabel;
+        private Button signboardPackButton;
+        private Text signboardPackLabel;
         private Text rushText;
         private Text statusText;
         private Text prestigeText;
@@ -75,6 +88,8 @@ namespace ChaiEmpire
         private bool hapticsEnabled = true;
         private bool resetSaveArmed;
         private bool prestigeArmed;
+        private bool offlineSponsorClaimed;
+        private OfflineReward pendingOfflineReward;
 
         private void Start()
         {
@@ -228,6 +243,7 @@ namespace ChaiEmpire
             BuildTutorial(contentObject.transform);
             BuildActions(contentObject.transform);
             BuildEventPanel(contentObject.transform);
+            BuildMonetizationPanel(contentObject.transform);
             BuildUpgradeList(contentObject.transform);
             BuildLocationList(contentObject.transform);
             BuildPrestige(contentObject.transform);
@@ -408,7 +424,7 @@ namespace ChaiEmpire
             cardRect.anchorMax = new Vector2(0.5f, 0.5f);
             cardRect.pivot = new Vector2(0.5f, 0.5f);
             cardRect.anchoredPosition = Vector2.zero;
-            cardRect.sizeDelta = new Vector2(860, 620);
+            cardRect.sizeDelta = new Vector2(860, 760);
 
             Image cardImage = card.AddComponent<Image>();
             cardImage.color = Panel;
@@ -427,6 +443,10 @@ namespace ChaiEmpire
             offlineRewardAmountText.fontStyle = FontStyle.Bold;
             offlineRewardDetailText = CreateText("Offline Reward Detail", card.transform, string.Empty, 28, Ink, TextAnchor.MiddleCenter);
             offlineRewardCapText = CreateText("Offline Reward Cap", card.transform, string.Empty, 24, Rose, TextAnchor.MiddleCenter);
+
+            offlineSponsorButton = CreateButton("Sponsor Offline Bonus", card.transform, "Optional Sponsor x2", 28, Leaf, 78);
+            offlineSponsorLabel = offlineSponsorButton.GetComponentInChildren<Text>();
+            offlineSponsorButton.onClick.AddListener(HandleOfflineSponsorBonus);
 
             Button claim = CreateButton("Claim Offline Reward", card.transform, "Claim", 30, Saffron, 82);
             claim.onClick.AddListener(() =>
@@ -588,6 +608,38 @@ namespace ChaiEmpire
             eventButton.onClick.AddListener(HandleStartEvent);
         }
 
+        private void BuildMonetizationPanel(Transform parent)
+        {
+            GameObject section = CreatePanel("Optional Rewards", parent, new Color(0.95f, 0.90f, 0.86f), 520);
+            VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(22, 22, 18, 18);
+            layout.spacing = 8;
+
+            Text title = CreateText("Optional Rewards Title", section.transform, "Optional Rewards", 34, Rose, TextAnchor.MiddleLeft);
+            title.fontStyle = FontStyle.Bold;
+            monetizationText = CreateText("Optional Rewards Status", section.transform, string.Empty, 23, Ink, TextAnchor.MiddleLeft);
+
+            sponsorBoostButton = CreateButton("Sponsor Boost", section.transform, "Sponsor Boost", 23, Leaf, 70);
+            sponsorBoostLabel = sponsorBoostButton.GetComponentInChildren<Text>();
+            sponsorBoostButton.onClick.AddListener(HandleSponsorBoost);
+
+            noAdsButton = CreateButton("No Ads", section.transform, "No Ads", 23, Teal, 66);
+            noAdsLabel = noAdsButton.GetComponentInChildren<Text>();
+            noAdsButton.onClick.AddListener(HandleNoAdsPurchase);
+
+            stallThemeButton = CreateButton("Stall Theme", section.transform, "Theme", 22, Saffron, 64);
+            stallThemeLabel = stallThemeButton.GetComponentInChildren<Text>();
+            stallThemeButton.onClick.AddListener(HandleCycleStallTheme);
+
+            cupPackButton = CreateButton("Cup Pack", section.transform, "Cup Pack", 22, Saffron, 64);
+            cupPackLabel = cupPackButton.GetComponentInChildren<Text>();
+            cupPackButton.onClick.AddListener(HandleCycleCupPack);
+
+            signboardPackButton = CreateButton("Signboard Pack", section.transform, "Signboard", 22, Saffron, 64);
+            signboardPackLabel = signboardPackButton.GetComponentInChildren<Text>();
+            signboardPackButton.onClick.AddListener(HandleCycleSignboardPack);
+        }
+
         private void BuildSettings(Transform parent)
         {
             GameObject section = CreatePanel("Settings", parent, new Color(0.93f, 0.94f, 0.89f), 258);
@@ -637,6 +689,7 @@ namespace ChaiEmpire
             rushButton.interactable = game.State.RushCooldownSeconds <= 0;
             SetButtonColor(rushButton, rushButton.interactable ? Rose : Disabled);
             RefreshEvents();
+            RefreshMonetization();
 
             foreach (UpgradeRow row in upgradeRows)
             {
@@ -766,6 +819,49 @@ namespace ChaiEmpire
             eventButton.interactable = true;
             eventButtonLabel.text = "Start Event";
             SetButtonColor(eventButton, Leaf);
+        }
+
+        private void RefreshMonetization()
+        {
+            if (monetizationText == null)
+            {
+                return;
+            }
+
+            MonetizationState monetization = game.State.Monetization;
+            CosmeticState cosmetics = game.State.Cosmetics;
+            monetizationText.text = "Boost x" + game.GetProductionBoostMultiplier().ToString("0.#") +
+                "  |  No Ads " + (monetization.NoAdsPurchased ? "Owned" : "Available") + "\n" +
+                "Theme: " + ChaiCosmetics.GetDisplayName(ChaiCosmetics.StallThemes, cosmetics.StallThemeId) +
+                "  |  Cups: " + ChaiCosmetics.GetDisplayName(ChaiCosmetics.CupPacks, cosmetics.CupPackId) + "\n" +
+                "Signboard: " + ChaiCosmetics.GetDisplayName(ChaiCosmetics.SignboardPacks, cosmetics.SignboardPackId);
+
+            if (monetization.ProductionBoostRemainingSeconds > 0)
+            {
+                sponsorBoostLabel.text = "Boost Active " + FormatDuration(monetization.ProductionBoostRemainingSeconds);
+                sponsorBoostButton.interactable = false;
+                SetButtonColor(sponsorBoostButton, Saffron);
+            }
+            else if (monetization.ProductionBoostCooldownSeconds > 0)
+            {
+                sponsorBoostLabel.text = "Boost Ready in " + FormatDuration(monetization.ProductionBoostCooldownSeconds);
+                sponsorBoostButton.interactable = false;
+                SetButtonColor(sponsorBoostButton, Disabled);
+            }
+            else
+            {
+                sponsorBoostLabel.text = "Optional Sponsor Boost";
+                sponsorBoostButton.interactable = true;
+                SetButtonColor(sponsorBoostButton, Leaf);
+            }
+
+            noAdsLabel.text = monetization.NoAdsPurchased ? "No Ads Owned" : "Optional No Ads";
+            noAdsButton.interactable = !monetization.NoAdsPurchased;
+            SetButtonColor(noAdsButton, monetization.NoAdsPurchased ? Disabled : Teal);
+
+            stallThemeLabel.text = "Theme: " + ChaiCosmetics.GetDisplayName(ChaiCosmetics.StallThemes, cosmetics.StallThemeId);
+            cupPackLabel.text = "Cups: " + ChaiCosmetics.GetDisplayName(ChaiCosmetics.CupPacks, cosmetics.CupPackId);
+            signboardPackLabel.text = "Sign: " + ChaiCosmetics.GetDisplayName(ChaiCosmetics.SignboardPacks, cosmetics.SignboardPackId);
         }
 
         private void HandleHapticsToggle()
@@ -905,6 +1001,91 @@ namespace ChaiEmpire
             RefreshAll();
         }
 
+        private void HandleSponsorBoost()
+        {
+            PlayButtonPressSound();
+            if (game.TryStartRewardedProductionBoost())
+            {
+                ChaiSaveRepository.Save(game.State);
+                PlayUnlockSound();
+                TriggerHaptic();
+                SetStatus("Sponsor boost: x2 for 2m");
+            }
+            else
+            {
+                SetStatus("Sponsor boost not ready");
+            }
+
+            RefreshAll();
+        }
+
+        private void HandleNoAdsPurchase()
+        {
+            PlayButtonPressSound();
+            if (game.TryPurchaseNoAds())
+            {
+                ChaiSaveRepository.Save(game.State);
+                PlayPurchaseSound();
+                SetStatus("No Ads owned");
+            }
+            else
+            {
+                SetStatus("No Ads already owned");
+            }
+
+            RefreshAll();
+        }
+
+        private void HandleCycleStallTheme()
+        {
+            CycleCosmetic(ChaiCosmetics.StallThemes, game.State.Cosmetics.StallThemeId, game.TrySelectStallTheme, "Theme selected");
+        }
+
+        private void HandleCycleCupPack()
+        {
+            CycleCosmetic(ChaiCosmetics.CupPacks, game.State.Cosmetics.CupPackId, game.TrySelectCupPack, "Cup pack selected");
+        }
+
+        private void HandleCycleSignboardPack()
+        {
+            CycleCosmetic(ChaiCosmetics.SignboardPacks, game.State.Cosmetics.SignboardPackId, game.TrySelectSignboardPack, "Signboard selected");
+        }
+
+        private void CycleCosmetic(IReadOnlyList<CosmeticDefinition> definitions, string currentId, Func<string, bool> select, string status)
+        {
+            PlayButtonPressSound();
+            string nextId = ChaiCosmetics.GetNextId(definitions, currentId);
+            if (select(nextId))
+            {
+                ChaiSaveRepository.Save(game.State);
+                PlayPurchaseSound();
+                SetStatus(status);
+            }
+
+            RefreshAll();
+        }
+
+        private void HandleOfflineSponsorBonus()
+        {
+            PlayButtonPressSound();
+            if (offlineSponsorClaimed || pendingOfflineReward.RupeesEarned <= BigDouble.Zero)
+            {
+                SetStatus("Sponsor bonus already claimed");
+                return;
+            }
+
+            if (game.TryClaimRewardedOfflineBonus(pendingOfflineReward.RupeesEarned))
+            {
+                offlineSponsorClaimed = true;
+                ChaiSaveRepository.Save(game.State);
+                offlineRewardAmountText.text = ChaiNumberFormatter.Rupees(pendingOfflineReward.RupeesEarned * 2);
+                offlineSponsorLabel.text = "Sponsor Bonus Claimed";
+                offlineSponsorButton.interactable = false;
+                SetButtonColor(offlineSponsorButton, Disabled);
+                SetStatus("Offline reward doubled");
+            }
+        }
+
         private void PlayButtonPressSound()
         {
             PlaySound(GetButtonPressClip(), 0.42f);
@@ -945,11 +1126,16 @@ namespace ChaiEmpire
                 return;
             }
 
+            pendingOfflineReward = reward;
+            offlineSponsorClaimed = false;
             offlineRewardAmountText.text = ChaiNumberFormatter.Rupees(reward.RupeesEarned);
             offlineRewardDetailText.text = "Away " + FormatDuration(reward.RawSeconds) + "  |  Efficiency " + FormatPercent(game.GetOfflineEfficiency());
             offlineRewardCapText.text = reward.WasCapped ?
                 "Capped at " + FormatDuration(reward.CappedSeconds) :
                 "Cap " + FormatDuration(game.GetOfflineCapSeconds());
+            offlineSponsorLabel.text = "Optional Sponsor x2";
+            offlineSponsorButton.interactable = reward.RupeesEarned > BigDouble.Zero;
+            SetButtonColor(offlineSponsorButton, offlineSponsorButton.interactable ? Leaf : Disabled);
             offlineRewardModal.SetActive(true);
         }
 
@@ -1009,6 +1195,29 @@ namespace ChaiEmpire
             stallArtGlow.color = palette.Glow;
             stallCounterTop.color = palette.CounterTop;
             stallCounterFront.color = palette.CounterFront;
+            ApplyCosmeticTheme();
+        }
+
+        private void ApplyCosmeticTheme()
+        {
+            if (game.State.Cosmetics == null)
+            {
+                return;
+            }
+
+            switch (game.State.Cosmetics.StallThemeId)
+            {
+                case "festival-lights":
+                    stallArtGlow.color = new Color(1f, 0.88f, 0.42f);
+                    stallCounterTop.color = Saffron;
+                    stallCounterFront.color = Rose;
+                    break;
+                case "monsoon-blue":
+                    stallArtGlow.color = new Color(0.74f, 0.93f, 1f);
+                    stallCounterTop.color = Teal;
+                    stallCounterFront.color = new Color(0.12f, 0.27f, 0.34f);
+                    break;
+            }
         }
 
         private static string FormatPercent(double value)

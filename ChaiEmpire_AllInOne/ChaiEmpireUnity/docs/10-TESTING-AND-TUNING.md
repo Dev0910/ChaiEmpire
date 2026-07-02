@@ -18,6 +18,10 @@ Current test cases:
 | `Automation_and_location_unlocks_create_meaningful_passive_income` | Passive upgrades, Bus Stand unlock, and passive income formula. |
 | `Offline_progress_is_capped_and_uses_current_passive_rate` | 8-hour offline cap and 0.75 offline efficiency. |
 | `Events_apply_temporary_multipliers_and_rotate_after_cooldown` | Optional event activation, temporary multipliers, cooldown, and rotation. |
+| `Optional_rewarded_production_boost_is_timed_and_cooldown_gated` | Opt-in x2 production boost timing and cooldown gating. |
+| `Optional_offline_sponsor_bonus_adds_extra_reward_without_blocking_claim` | Optional offline x2 sponsor bonus adds extra currency without blocking the base claim. |
+| `Cosmetic_and_no_ads_choices_save_without_affecting_income` | No-ads and cosmetic choices persist without changing production formulas. |
+| `Non_paying_player_can_progress_without_optional_monetization` | Core early progression works with no optional monetization used. |
 | `Early_balance_reaches_first_upgrade_and_first_automation_in_target_window` | First upgrade by 1 minute and Helper Boy inside the first 3-5 minutes for a casual tap cadence. |
 | `Number_formatter_outputs_readable_rupees_suffixes_rates_and_large_fallback` | Compact rupee display, negative suffixes, per-second labels, and high exponent fallback. |
 | `Default_upgrade_catalog_has_unique_valid_progression_values` | Unique upgrade IDs, positive costs/effects, scaling multipliers, and automation flags. |
@@ -48,7 +52,7 @@ Unity.exe -batchmode -projectPath <project> -runTests -testPlatform editmode -te
 Tests should produce:
 
 ```text
-total="25" passed="25" failed="0"
+total="29" passed="29" failed="0"
 ```
 
 ## First 5 Minutes Test
@@ -150,6 +154,8 @@ Run this after any economy change:
 - Rush cannot be triggered during cooldown.
 - Event multipliers only apply while an event is active.
 - Event cooldown and rotation survive save/load.
+- Optional rewards are opt-in and never required for first-upgrade progression.
+- Cosmetic and no-ads flags do not change production formulas.
 - Prestige preview remains locked until airport/lounge and 1B lifetime rupees.
 - Prestige reset preserves Masala Legacy and skill levels.
 - Skill effects still apply after save/load.

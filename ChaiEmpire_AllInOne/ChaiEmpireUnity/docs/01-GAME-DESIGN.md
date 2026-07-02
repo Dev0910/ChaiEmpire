@@ -171,13 +171,13 @@ Implemented:
 - Offline reward with cap and efficiency.
 - Prestige reset, Masala Legacy, skill points, and skill effects.
 - Optional rotating live events.
+- Optional sponsor rewards and cosmetic selections.
 - Android portrait runtime-created UI.
 - Android APK build entrypoint.
 
 Planned/future:
 
-- Cosmetic stall skins.
-- Monetization.
+- Real ad SDK and billing integration.
 - Analytics.
 - Cloud save.
 - Better art/audio.

@@ -10,6 +10,9 @@ namespace ChaiEmpire
         private const double RushCooldownSeconds = 90;
         private const double RushMultiplier = 2;
         private const double MinimumDiscountedCostMultiplier = 0.1;
+        private const double RewardedProductionBoostDurationSeconds = 120;
+        private const double RewardedProductionBoostCooldownSeconds = 600;
+        private const double RewardedProductionBoostMultiplier = 2;
 
         private readonly ChaiContent content;
 
@@ -61,7 +64,7 @@ namespace ChaiEmpire
                 skillTapMultiplier += GetSkillBonus(PrestigeSkillEffect.RushTapMultiplier);
             }
 
-            return flat * tapMultiplier * skillTapMultiplier * GetEventTapMultiplier() * GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetRushMultiplier();
+            return flat * tapMultiplier * skillTapMultiplier * GetEventTapMultiplier() * GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetRushMultiplier() * GetProductionBoostMultiplier();
         }
 
         public BigDouble GetPassiveRupeesPerSecond()
@@ -87,7 +90,7 @@ namespace ChaiEmpire
                 }
             }
 
-            BigDouble multiplier = GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetSkillMultiplier(PrestigeSkillEffect.PassiveMultiplier) * GetEventPassiveMultiplier();
+            BigDouble multiplier = GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetSkillMultiplier(PrestigeSkillEffect.PassiveMultiplier) * GetEventPassiveMultiplier() * GetProductionBoostMultiplier();
             if (includeRush)
             {
                 multiplier *= GetRushMultiplier();
@@ -125,6 +128,7 @@ namespace ChaiEmpire
             State.RushRemainingSeconds = Math.Max(0, State.RushRemainingSeconds - deltaSeconds);
             State.RushCooldownSeconds = Math.Max(0, State.RushCooldownSeconds - deltaSeconds);
             UpdateEventTimers(deltaSeconds);
+            UpdateMonetizationTimers(deltaSeconds);
         }
 
         public bool TryTriggerRushHour()
@@ -221,6 +225,8 @@ namespace ChaiEmpire
 
             ChaiGameState freshState = ChaiGameState.CreateNew();
             freshState.Prestige = preservedPrestige;
+            freshState.Monetization = GetMonetizationState();
+            freshState.Cosmetics = GetCosmeticState();
             State = freshState;
 
             result = new PrestigeResult(true, gainedLegacy, gainedSkillPoints, "Secret Masala preserved. The new stall opens stronger.");
@@ -279,6 +285,75 @@ namespace ChaiEmpire
             eventState.ActiveEventId = definition.Id;
             eventState.RemainingSeconds = definition.DurationSeconds;
             eventState.CooldownSeconds = 0;
+            return true;
+        }
+
+        public bool TryClaimRewardedOfflineBonus(BigDouble baseReward)
+        {
+            if (baseReward <= BigDouble.Zero)
+            {
+                return false;
+            }
+
+            Earn(baseReward);
+            GetMonetizationState().RewardedOfflineBonusClaims++;
+            return true;
+        }
+
+        public bool TryStartRewardedProductionBoost()
+        {
+            MonetizationState monetization = GetMonetizationState();
+            if (monetization.ProductionBoostRemainingSeconds > 0 || monetization.ProductionBoostCooldownSeconds > 0)
+            {
+                return false;
+            }
+
+            monetization.ProductionBoostRemainingSeconds = RewardedProductionBoostDurationSeconds;
+            return true;
+        }
+
+        public bool TryPurchaseNoAds()
+        {
+            MonetizationState monetization = GetMonetizationState();
+            if (monetization.NoAdsPurchased)
+            {
+                return false;
+            }
+
+            monetization.NoAdsPurchased = true;
+            return true;
+        }
+
+        public bool TrySelectStallTheme(string themeId)
+        {
+            if (!ChaiCosmetics.Contains(ChaiCosmetics.StallThemes, themeId))
+            {
+                return false;
+            }
+
+            GetCosmeticState().StallThemeId = themeId;
+            return true;
+        }
+
+        public bool TrySelectCupPack(string cupPackId)
+        {
+            if (!ChaiCosmetics.Contains(ChaiCosmetics.CupPacks, cupPackId))
+            {
+                return false;
+            }
+
+            GetCosmeticState().CupPackId = cupPackId;
+            return true;
+        }
+
+        public bool TrySelectSignboardPack(string signboardPackId)
+        {
+            if (!ChaiCosmetics.Contains(ChaiCosmetics.SignboardPacks, signboardPackId))
+            {
+                return false;
+            }
+
+            GetCosmeticState().SignboardPackId = signboardPackId;
             return true;
         }
 
@@ -360,6 +435,11 @@ namespace ChaiEmpire
             return 1 + GetActiveEventBonus(definition => definition.PassiveMultiplierBonus);
         }
 
+        public double GetProductionBoostMultiplier()
+        {
+            return GetMonetizationState().ProductionBoostRemainingSeconds > 0 ? RewardedProductionBoostMultiplier : 1;
+        }
+
         private BigDouble GetUpgradeCost(UpgradeDefinition upgrade, int currentLevel)
         {
             return ApplyCostReduction(upgrade.GetCost(currentLevel), PrestigeSkillEffect.UpgradeCostReduction);
@@ -421,6 +501,26 @@ namespace ChaiEmpire
             return State.Event;
         }
 
+        private MonetizationState GetMonetizationState()
+        {
+            if (State.Monetization == null)
+            {
+                State.Monetization = new MonetizationState();
+            }
+
+            return State.Monetization;
+        }
+
+        private CosmeticState GetCosmeticState()
+        {
+            if (State.Cosmetics == null)
+            {
+                State.Cosmetics = CosmeticState.CreateDefault();
+            }
+
+            return State.Cosmetics;
+        }
+
         private void EnsureStateDefaults()
         {
             if (State.Prestige == null)
@@ -431,6 +531,16 @@ namespace ChaiEmpire
             if (State.Event == null)
             {
                 State.Event = new EventState();
+            }
+
+            if (State.Monetization == null)
+            {
+                State.Monetization = new MonetizationState();
+            }
+
+            if (State.Cosmetics == null)
+            {
+                State.Cosmetics = CosmeticState.CreateDefault();
             }
         }
 
@@ -473,6 +583,23 @@ namespace ChaiEmpire
             }
 
             return 0;
+        }
+
+        private void UpdateMonetizationTimers(double deltaSeconds)
+        {
+            MonetizationState monetization = GetMonetizationState();
+            if (monetization.ProductionBoostRemainingSeconds > 0)
+            {
+                monetization.ProductionBoostRemainingSeconds = Math.Max(0, monetization.ProductionBoostRemainingSeconds - deltaSeconds);
+                if (monetization.ProductionBoostRemainingSeconds <= 0)
+                {
+                    monetization.ProductionBoostCooldownSeconds = Math.Max(monetization.ProductionBoostCooldownSeconds, RewardedProductionBoostCooldownSeconds);
+                }
+
+                return;
+            }
+
+            monetization.ProductionBoostCooldownSeconds = Math.Max(0, monetization.ProductionBoostCooldownSeconds - deltaSeconds);
         }
 
         private static int ConvertLegacyToSkillPoints(BigDouble legacy)

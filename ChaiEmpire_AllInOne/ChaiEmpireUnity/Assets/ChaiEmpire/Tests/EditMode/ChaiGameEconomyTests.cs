@@ -94,6 +94,82 @@ namespace ChaiEmpire.Tests
         }
 
         [Test]
+        public void Optional_rewarded_production_boost_is_timed_and_cooldown_gated()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            game.State.SetUpgradeLevel("helper-boy", 1);
+
+            Assert.That(game.GetProductionBoostMultiplier(), Is.EqualTo(1d).Within(0.001d));
+            Assert.That(game.TryStartRewardedProductionBoost(), Is.True);
+            Assert.That(game.GetProductionBoostMultiplier(), Is.EqualTo(2d).Within(0.001d));
+            Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(2d).Within(0.001d));
+            Assert.That(game.GetPassiveRupeesPerSecond(includeRush: false).ToDouble(), Is.EqualTo(1d).Within(0.001d));
+
+            game.Tick(120d);
+
+            Assert.That(game.GetProductionBoostMultiplier(), Is.EqualTo(1d).Within(0.001d));
+            Assert.That(game.State.Monetization.ProductionBoostCooldownSeconds, Is.EqualTo(600d).Within(0.001d));
+            Assert.That(game.TryStartRewardedProductionBoost(), Is.False);
+
+            game.Tick(600d);
+
+            Assert.That(game.State.Monetization.ProductionBoostCooldownSeconds, Is.EqualTo(0d).Within(0.001d));
+            Assert.That(game.TryStartRewardedProductionBoost(), Is.True);
+        }
+
+        [Test]
+        public void Optional_offline_sponsor_bonus_adds_extra_reward_without_blocking_claim()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+
+            Assert.That(game.TryClaimRewardedOfflineBonus(new BigDouble(250)), Is.True);
+            Assert.That(game.State.Rupees.ToDouble(), Is.EqualTo(250d).Within(0.001d));
+            Assert.That(game.State.TotalLifetimeRupees.ToDouble(), Is.EqualTo(250d).Within(0.001d));
+            Assert.That(game.State.Monetization.RewardedOfflineBonusClaims, Is.EqualTo(1));
+            Assert.That(game.TryClaimRewardedOfflineBonus(BigDouble.Zero), Is.False);
+        }
+
+        [Test]
+        public void Cosmetic_and_no_ads_choices_save_without_affecting_income()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+
+            Assert.That(game.TryPurchaseNoAds(), Is.True);
+            Assert.That(game.TryPurchaseNoAds(), Is.False);
+            Assert.That(game.TrySelectStallTheme("festival-lights"), Is.True);
+            Assert.That(game.TrySelectCupPack("steel-glasses"), Is.True);
+            Assert.That(game.TrySelectSignboardPack("neon-board"), Is.True);
+            Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(1d).Within(0.001d));
+
+            ChaiGameState restored = ChaiSaveCodec.FromJson(ChaiSaveCodec.ToJson(game.State));
+            ChaiGame restoredGame = ChaiGame.FromState(content, restored);
+
+            Assert.That(restored.Monetization.NoAdsPurchased, Is.True);
+            Assert.That(restored.Cosmetics.StallThemeId, Is.EqualTo("festival-lights"));
+            Assert.That(restored.Cosmetics.CupPackId, Is.EqualTo("steel-glasses"));
+            Assert.That(restored.Cosmetics.SignboardPackId, Is.EqualTo("neon-board"));
+            Assert.That(restoredGame.GetTapValue().ToDouble(), Is.EqualTo(1d).Within(0.001d));
+        }
+
+        [Test]
+        public void Non_paying_player_can_progress_without_optional_monetization()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+
+            game.TapKettle(10);
+
+            Assert.That(game.TryBuyUpgrade("strong-tea"), Is.True);
+            Assert.That(game.State.Monetization.NoAdsPurchased, Is.False);
+            Assert.That(game.State.Monetization.RewardedOfflineBonusClaims, Is.EqualTo(0));
+            Assert.That(game.GetProductionBoostMultiplier(), Is.EqualTo(1d).Within(0.001d));
+            Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(2d).Within(0.001d));
+        }
+
+        [Test]
         public void Early_balance_reaches_first_upgrade_and_first_automation_in_target_window()
         {
             ChaiContent content = ChaiContent.CreateDefault();

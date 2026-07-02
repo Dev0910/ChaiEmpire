@@ -25,6 +25,19 @@ namespace ChaiEmpire
                     cooldownSeconds = state.Event?.CooldownSeconds ?? 0,
                     completedCount = state.Event?.CompletedCount ?? 0
                 },
+                monetization = new MonetizationDto
+                {
+                    noAdsPurchased = state.Monetization?.NoAdsPurchased ?? false,
+                    productionBoostRemainingSeconds = state.Monetization?.ProductionBoostRemainingSeconds ?? 0,
+                    productionBoostCooldownSeconds = state.Monetization?.ProductionBoostCooldownSeconds ?? 0,
+                    rewardedOfflineBonusClaims = state.Monetization?.RewardedOfflineBonusClaims ?? 0
+                },
+                cosmetics = new CosmeticDto
+                {
+                    stallThemeId = state.Cosmetics?.StallThemeId,
+                    cupPackId = state.Cosmetics?.CupPackId,
+                    signboardPackId = state.Cosmetics?.SignboardPackId
+                },
                 prestige = new PrestigeDto
                 {
                     masalaLegacy = SerializeNumber(state.Prestige.MasalaLegacy),
@@ -107,6 +120,19 @@ namespace ChaiEmpire
                     RemainingSeconds = Math.Max(0, dto.eventState?.remainingSeconds ?? 0),
                     CooldownSeconds = Math.Max(0, dto.eventState?.cooldownSeconds ?? 0),
                     CompletedCount = Math.Max(0, dto.eventState?.completedCount ?? 0)
+                },
+                Monetization = new MonetizationState
+                {
+                    NoAdsPurchased = dto.monetization?.noAdsPurchased ?? false,
+                    ProductionBoostRemainingSeconds = Math.Max(0, dto.monetization?.productionBoostRemainingSeconds ?? 0),
+                    ProductionBoostCooldownSeconds = Math.Max(0, dto.monetization?.productionBoostCooldownSeconds ?? 0),
+                    RewardedOfflineBonusClaims = Math.Max(0, dto.monetization?.rewardedOfflineBonusClaims ?? 0)
+                },
+                Cosmetics = new CosmeticState
+                {
+                    StallThemeId = NormalizeCosmeticId(ChaiCosmetics.StallThemes, dto.cosmetics?.stallThemeId),
+                    CupPackId = NormalizeCosmeticId(ChaiCosmetics.CupPacks, dto.cosmetics?.cupPackId),
+                    SignboardPackId = NormalizeCosmeticId(ChaiCosmetics.SignboardPacks, dto.cosmetics?.signboardPackId)
                 },
                 Prestige = new PrestigeState
                 {
@@ -195,6 +221,16 @@ namespace ChaiEmpire
             }
         }
 
+        private static string NormalizeCosmeticId(IReadOnlyList<CosmeticDefinition> definitions, string id)
+        {
+            if (ChaiCosmetics.Contains(definitions, id))
+            {
+                return id;
+            }
+
+            return definitions.Count > 0 ? definitions[0].Id : string.Empty;
+        }
+
         [Serializable]
         private sealed class ChaiSaveDto
         {
@@ -206,6 +242,8 @@ namespace ChaiEmpire
             public double rushRemainingSeconds;
             public double rushCooldownSeconds;
             public EventDto eventState;
+            public MonetizationDto monetization;
+            public CosmeticDto cosmetics;
             public PrestigeDto prestige;
             public List<UpgradeLevelDto> upgradeLevels;
             public List<LocationUnlockDto> unlockedLocations;
@@ -218,6 +256,23 @@ namespace ChaiEmpire
             public double remainingSeconds;
             public double cooldownSeconds;
             public int completedCount;
+        }
+
+        [Serializable]
+        private sealed class MonetizationDto
+        {
+            public bool noAdsPurchased;
+            public double productionBoostRemainingSeconds;
+            public double productionBoostCooldownSeconds;
+            public int rewardedOfflineBonusClaims;
+        }
+
+        [Serializable]
+        private sealed class CosmeticDto
+        {
+            public string stallThemeId;
+            public string cupPackId;
+            public string signboardPackId;
         }
 
         [Serializable]

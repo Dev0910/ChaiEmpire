@@ -182,6 +182,17 @@ Shows:
 
 Events are optional bonuses and do not block the main loop.
 
+### Optional Rewards
+
+Shows:
+
+- Section title `Optional Rewards`.
+- Production boost state and opt-in sponsor boost button.
+- Local no-ads ownership state and optional no-ads button.
+- Cosmetic selectors for stall theme, cup pack, and signboard pack.
+
+The offline reward modal also includes an optional `Sponsor x2` button. These controls are opt-in and the core loop remains playable without using them.
+
 ### Upgrades
 
 Shows all current upgrades.

@@ -167,6 +167,10 @@ Keep these public methods stable if possible:
 | `ChaiGame.GetNextEventDefinition()` | Returns the next optional live event in rotation. |
 | `ChaiGame.TryStartEvent(string eventId)` | Starts an optional timed event if ready. |
 | `ChaiGame.TryGetActiveEvent(out ChaiEventDefinition definition)` | Returns the current active event. |
+| `ChaiGame.TryClaimRewardedOfflineBonus(BigDouble baseReward)` | Adds the opt-in offline x2 sponsor bonus. |
+| `ChaiGame.TryStartRewardedProductionBoost()` | Starts an opt-in temporary x2 production boost. |
+| `ChaiGame.TryPurchaseNoAds()` | Sets the local no-ads ownership flag. |
+| Cosmetic selection methods | Select stall theme, cup pack, and signboard pack without changing formulas. |
 
 ## Content Expansion Steps
 
@@ -219,6 +223,7 @@ Current edit-mode tests validate:
 - Prestige preview lock/unlock condition.
 - Prestige reset and skill effects.
 - Optional event activation, save fields, and timed multipliers.
+- Optional monetization rewards, no-ads flag, and cosmetic save fields.
 - JSON content parsing and validation.
 
 Use edit-mode tests for economy because they are fast and do not require scene loading.

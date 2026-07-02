@@ -126,6 +126,16 @@ Current events rotate through the `ChaiEvents` catalog and are optional timed bo
 | Corporate Campus | Delivery and subscription mechanics. |
 | Tea Expo | Prestige-adjacent global demand. |
 
+## Cosmetic Definitions
+
+Current cosmetic choices are local, optional, and do not affect income.
+
+| Type | IDs |
+| --- | --- |
+| Stall themes | `classic-tapri`, `festival-lights`, `monsoon-blue` |
+| Cup packs | `kulhad-cups`, `steel-glasses`, `paper-cups` |
+| Signboard packs | `painted-board`, `neon-board`, `brass-board` |
+
 ## Content Authoring Rules
 
 - Edit the default catalog at `Assets/ChaiEmpire/Resources/ChaiEmpire/default-content.json`.

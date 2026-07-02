@@ -16,6 +16,8 @@ namespace ChaiEmpire
         public double RushCooldownSeconds;
         public PrestigeState Prestige = new PrestigeState();
         public EventState Event = new EventState();
+        public MonetizationState Monetization = new MonetizationState();
+        public CosmeticState Cosmetics = CosmeticState.CreateDefault();
         public List<UpgradeLevelEntry> UpgradeLevels = new List<UpgradeLevelEntry>();
         public List<LocationUnlockEntry> UnlockedLocations = new List<LocationUnlockEntry>();
 
@@ -29,7 +31,9 @@ namespace ChaiEmpire
                 ChaiServed = BigDouble.Zero,
                 LastSavedUtcTicks = DateTime.UtcNow.Ticks,
                 Prestige = new PrestigeState(),
-                Event = new EventState()
+                Event = new EventState(),
+                Monetization = new MonetizationState(),
+                Cosmetics = CosmeticState.CreateDefault()
             };
             state.UnlockLocation("gali-tapri");
             return state;
@@ -138,6 +142,33 @@ namespace ChaiEmpire
         public int CompletedCount;
 
         public bool IsActive => !string.IsNullOrWhiteSpace(ActiveEventId) && RemainingSeconds > 0;
+    }
+
+    [Serializable]
+    public sealed class MonetizationState
+    {
+        public bool NoAdsPurchased;
+        public double ProductionBoostRemainingSeconds;
+        public double ProductionBoostCooldownSeconds;
+        public int RewardedOfflineBonusClaims;
+    }
+
+    [Serializable]
+    public sealed class CosmeticState
+    {
+        public string StallThemeId;
+        public string CupPackId;
+        public string SignboardPackId;
+
+        public static CosmeticState CreateDefault()
+        {
+            return new CosmeticState
+            {
+                StallThemeId = "classic-tapri",
+                CupPackId = "kulhad-cups",
+                SignboardPackId = "painted-board"
+            };
+        }
     }
 
     [Serializable]

@@ -75,6 +75,8 @@ Current runtime state fields:
 | `RushRemainingSeconds` | `double` | Current active rush time. |
 | `RushCooldownSeconds` | `double` | Remaining rush cooldown. |
 | `Event` | `EventState` | Active optional event, event cooldown, and rotation progress. |
+| `Monetization` | `MonetizationState` | Optional reward timers, no-ads flag, and sponsor claim count. |
+| `Cosmetics` | `CosmeticState` | Selected stall theme, cup pack, and signboard pack. |
 | `Prestige` | `PrestigeState` | Future prestige state. |
 | `UpgradeLevels` | `List<UpgradeLevelEntry>` | Upgrade IDs and levels. |
 | `UnlockedLocations` | `List<LocationUnlockEntry>` | Location IDs that are unlocked. |
@@ -95,6 +97,8 @@ Expected JSON fields:
 | `rushRemainingSeconds` | Active rush seconds. |
 | `rushCooldownSeconds` | Rush cooldown seconds. |
 | `eventState` | Event DTO. |
+| `monetization` | Monetization DTO. |
+| `cosmetics` | Cosmetic DTO. |
 | `prestige` | Prestige DTO. |
 | `upgradeLevels` | List of upgrade level DTOs. |
 | `unlockedLocations` | List of location unlock DTOs. |
@@ -115,6 +119,23 @@ Event DTO:
 | `remainingSeconds` | Remaining active event time. |
 | `cooldownSeconds` | Time until the next event can be started. |
 | `completedCount` | Rotation counter for the next optional event. |
+
+Monetization DTO:
+
+| JSON field | Notes |
+| --- | --- |
+| `noAdsPurchased` | Local no-ads ownership flag. |
+| `productionBoostRemainingSeconds` | Remaining optional x2 production boost. |
+| `productionBoostCooldownSeconds` | Cooldown until another optional boost can start. |
+| `rewardedOfflineBonusClaims` | Count of optional offline x2 sponsor bonuses claimed. |
+
+Cosmetic DTO:
+
+| JSON field | Notes |
+| --- | --- |
+| `stallThemeId` | Selected stall theme. |
+| `cupPackId` | Selected cup pack. |
+| `signboardPackId` | Selected signboard pack. |
 
 Upgrade level DTO:
 
