@@ -53,6 +53,9 @@ namespace ChaiEmpire
         private Text offlineRewardAmountText;
         private Text offlineRewardDetailText;
         private Text offlineRewardCapText;
+        private Text eventText;
+        private Button eventButton;
+        private Text eventButtonLabel;
         private Text rushText;
         private Text statusText;
         private Text prestigeText;
@@ -224,6 +227,7 @@ namespace ChaiEmpire
             BuildStats(contentObject.transform);
             BuildTutorial(contentObject.transform);
             BuildActions(contentObject.transform);
+            BuildEventPanel(contentObject.transform);
             BuildUpgradeList(contentObject.transform);
             BuildLocationList(contentObject.transform);
             BuildPrestige(contentObject.transform);
@@ -569,6 +573,21 @@ namespace ChaiEmpire
             statusText = CreateText("Status", section.transform, string.Empty, 24, Rose, TextAnchor.MiddleLeft);
         }
 
+        private void BuildEventPanel(Transform parent)
+        {
+            GameObject section = CreatePanel("Events", parent, new Color(0.91f, 0.95f, 0.87f), 270);
+            VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(22, 22, 18, 18);
+            layout.spacing = 8;
+
+            Text title = CreateText("Events Title", section.transform, "Live Events", 34, Leaf, TextAnchor.MiddleLeft);
+            title.fontStyle = FontStyle.Bold;
+            eventText = CreateText("Event Status", section.transform, string.Empty, 23, Ink, TextAnchor.MiddleLeft);
+            eventButton = CreateButton("Event Button", section.transform, "Start Event", 24, Leaf, 72);
+            eventButtonLabel = eventButton.GetComponentInChildren<Text>();
+            eventButton.onClick.AddListener(HandleStartEvent);
+        }
+
         private void BuildSettings(Transform parent)
         {
             GameObject section = CreatePanel("Settings", parent, new Color(0.93f, 0.94f, 0.89f), 258);
@@ -617,6 +636,7 @@ namespace ChaiEmpire
 
             rushButton.interactable = game.State.RushCooldownSeconds <= 0;
             SetButtonColor(rushButton, rushButton.interactable ? Rose : Disabled);
+            RefreshEvents();
 
             foreach (UpgradeRow row in upgradeRows)
             {
@@ -707,6 +727,45 @@ namespace ChaiEmpire
                 row.Button.interactable = canSpend;
                 SetButtonColor(row.Button, isMaxed ? Saffron : canSpend ? Leaf : Disabled);
             }
+        }
+
+        private void RefreshEvents()
+        {
+            if (eventText == null || eventButton == null)
+            {
+                return;
+            }
+
+            EventState eventState = game.State.Event;
+            if (game.TryGetActiveEvent(out ChaiEventDefinition activeEvent))
+            {
+                eventText.text = activeEvent.DisplayName + "\n" +
+                    activeEvent.Description + "\n" +
+                    "Active " + FormatDuration(eventState.RemainingSeconds) + "  |  " + FormatEventEffects(activeEvent);
+                eventButton.interactable = false;
+                eventButtonLabel.text = "Event Active";
+                SetButtonColor(eventButton, Saffron);
+                return;
+            }
+
+            ChaiEventDefinition nextEvent = game.GetNextEventDefinition();
+            if (eventState.CooldownSeconds > 0)
+            {
+                eventText.text = "Next: " + nextEvent.DisplayName + "\n" +
+                    nextEvent.Description + "\n" +
+                    "Ready in " + FormatDuration(eventState.CooldownSeconds);
+                eventButton.interactable = false;
+                eventButtonLabel.text = "Cooling Down";
+                SetButtonColor(eventButton, Disabled);
+                return;
+            }
+
+            eventText.text = "Next: " + nextEvent.DisplayName + "\n" +
+                nextEvent.Description + "\n" +
+                FormatEventEffects(nextEvent);
+            eventButton.interactable = true;
+            eventButtonLabel.text = "Start Event";
+            SetButtonColor(eventButton, Leaf);
         }
 
         private void HandleHapticsToggle()
@@ -822,6 +881,25 @@ namespace ChaiEmpire
             else
             {
                 SetStatus("Need a skill point");
+            }
+
+            RefreshAll();
+        }
+
+        private void HandleStartEvent()
+        {
+            PlayButtonPressSound();
+            ChaiEventDefinition nextEvent = game.GetNextEventDefinition();
+            if (game.TryStartEvent(nextEvent.Id))
+            {
+                ChaiSaveRepository.Save(game.State);
+                PlayUnlockSound();
+                TriggerHaptic();
+                SetStatus(nextEvent.DisplayName + " started");
+            }
+            else
+            {
+                SetStatus("Event not ready");
             }
 
             RefreshAll();
@@ -952,6 +1030,13 @@ namespace ChaiEmpire
             }
 
             return clampedSeconds.ToString("0") + "s";
+        }
+
+        private static string FormatEventEffects(ChaiEventDefinition definition)
+        {
+            return "Tap x" + (1 + definition.TapMultiplierBonus).ToString("0.##") +
+                "  |  Passive x" + (1 + definition.PassiveMultiplierBonus).ToString("0.##") +
+                "  |  All x" + (1 + definition.GlobalMultiplierBonus).ToString("0.##");
         }
 
         private static string DescribeUpgrade(UpgradeDefinition upgrade)

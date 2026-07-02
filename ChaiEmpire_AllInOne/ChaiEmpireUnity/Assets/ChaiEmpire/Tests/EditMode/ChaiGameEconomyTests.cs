@@ -64,6 +64,36 @@ namespace ChaiEmpire.Tests
         }
 
         [Test]
+        public void Events_apply_temporary_multipliers_and_rotate_after_cooldown()
+        {
+            ChaiContent content = ChaiContent.CreateDefault();
+            ChaiGame game = ChaiGame.NewGame(content);
+            ChaiEventDefinition firstEvent = game.GetNextEventDefinition();
+
+            Assert.That(firstEvent.Id, Is.EqualTo("monsoon-chai-rush"));
+            Assert.That(game.TryStartEvent(firstEvent.Id), Is.True);
+            Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(1.5d).Within(0.001d));
+
+            game.State.SetUpgradeLevel("helper-boy", 1);
+            Assert.That(game.GetPassiveRupeesPerSecond(includeRush: false).ToDouble(), Is.EqualTo(0.625d).Within(0.001d));
+
+            game.Tick(firstEvent.DurationSeconds);
+
+            Assert.That(game.State.Event.IsActive, Is.False);
+            Assert.That(game.State.Event.CooldownSeconds, Is.EqualTo(firstEvent.CooldownSeconds).Within(0.001d));
+            Assert.That(game.State.Event.CompletedCount, Is.EqualTo(1));
+            Assert.That(game.GetNextEventDefinition().Id, Is.EqualTo("diwali-sweet-combo"));
+            Assert.That(game.TryStartEvent(game.GetNextEventDefinition().Id), Is.False);
+
+            game.Tick(firstEvent.CooldownSeconds);
+
+            ChaiEventDefinition secondEvent = game.GetNextEventDefinition();
+            Assert.That(game.TryStartEvent(secondEvent.Id), Is.True);
+            Assert.That(game.GetTapValue().ToDouble(), Is.EqualTo(1.2d).Within(0.001d));
+            Assert.That(game.GetPassiveRupeesPerSecond(includeRush: false).ToDouble(), Is.EqualTo(0.75d).Within(0.001d));
+        }
+
+        [Test]
         public void Early_balance_reaches_first_upgrade_and_first_automation_in_target_window()
         {
             ChaiContent content = ChaiContent.CreateDefault();
@@ -248,6 +278,33 @@ namespace ChaiEmpire.Tests
             Assert.That(restored.Rupees.Exponent, Is.EqualTo(500));
             Assert.That(restored.TotalLifetimeRupees.Mantissa, Is.EqualTo(9.87654321d).Within(0.00000001d));
             Assert.That(restored.TotalLifetimeRupees.Exponent, Is.EqualTo(750));
+        }
+
+        [Test]
+        public void Event_save_fields_round_trip_active_and_cooldown_state()
+        {
+            ChaiGameState activeState = ChaiGameState.CreateNew();
+            activeState.Event.ActiveEventId = "cricket-match-night";
+            activeState.Event.RemainingSeconds = 123;
+            activeState.Event.CompletedCount = 2;
+
+            ChaiGameState restoredActive = ChaiSaveCodec.FromJson(ChaiSaveCodec.ToJson(activeState));
+
+            Assert.That(restoredActive.Event.ActiveEventId, Is.EqualTo("cricket-match-night"));
+            Assert.That(restoredActive.Event.RemainingSeconds, Is.EqualTo(123d).Within(0.001d));
+            Assert.That(restoredActive.Event.CooldownSeconds, Is.EqualTo(0d).Within(0.001d));
+            Assert.That(restoredActive.Event.CompletedCount, Is.EqualTo(2));
+
+            ChaiGameState cooldownState = ChaiGameState.CreateNew();
+            cooldownState.Event.CooldownSeconds = 456;
+            cooldownState.Event.CompletedCount = 1;
+
+            ChaiGameState restoredCooldown = ChaiSaveCodec.FromJson(ChaiSaveCodec.ToJson(cooldownState));
+
+            Assert.That(restoredCooldown.Event.ActiveEventId, Is.Null);
+            Assert.That(restoredCooldown.Event.RemainingSeconds, Is.EqualTo(0d).Within(0.001d));
+            Assert.That(restoredCooldown.Event.CooldownSeconds, Is.EqualTo(456d).Within(0.001d));
+            Assert.That(restoredCooldown.Event.CompletedCount, Is.EqualTo(1));
         }
 
         [Test]

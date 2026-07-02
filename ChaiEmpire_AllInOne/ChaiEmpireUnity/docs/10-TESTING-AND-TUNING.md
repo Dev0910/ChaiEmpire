@@ -17,6 +17,7 @@ Current test cases:
 | `Manual_taps_scale_with_brew_upgrades_and_legacy_bonus` | Tapping, first tap upgrade, and Masala Legacy multiplier. |
 | `Automation_and_location_unlocks_create_meaningful_passive_income` | Passive upgrades, Bus Stand unlock, and passive income formula. |
 | `Offline_progress_is_capped_and_uses_current_passive_rate` | 8-hour offline cap and 0.75 offline efficiency. |
+| `Events_apply_temporary_multipliers_and_rotate_after_cooldown` | Optional event activation, temporary multipliers, cooldown, and rotation. |
 | `Early_balance_reaches_first_upgrade_and_first_automation_in_target_window` | First upgrade by 1 minute and Helper Boy inside the first 3-5 minutes for a casual tap cadence. |
 | `Number_formatter_outputs_readable_rupees_suffixes_rates_and_large_fallback` | Compact rupee display, negative suffixes, per-second labels, and high exponent fallback. |
 | `Default_upgrade_catalog_has_unique_valid_progression_values` | Unique upgrade IDs, positive costs/effects, scaling multipliers, and automation flags. |
@@ -25,6 +26,7 @@ Current test cases:
 | `Content_validator_rejects_duplicate_ids_and_invalid_values` | Content validation catches duplicate IDs, invalid prestige values, and invalid offline settings. |
 | `Save_round_trip_preserves_v1_and_future_prestige_fields` | JSON save/load for currency, upgrades, locations, and prestige fields. |
 | `Save_round_trip_preserves_high_exponent_big_numbers` | Save/load keeps large `BigDouble` mantissa and exponent values. |
+| `Event_save_fields_round_trip_active_and_cooldown_state` | Event active timers, cooldowns, and rotation counter persist through save JSON. |
 | `Repository_load_backs_up_malformed_save_and_starts_new_game` | Malformed JSON recovery and corrupt-save backup. |
 | `Repository_load_backs_up_invalid_number_save_and_starts_new_game` | Invalid saved numbers recover safely. |
 | `Repository_load_ignores_invalid_saved_ticks_without_resetting_valid_state` | Invalid timestamps skip offline reward without wiping valid state. |
@@ -46,7 +48,7 @@ Unity.exe -batchmode -projectPath <project> -runTests -testPlatform editmode -te
 Tests should produce:
 
 ```text
-total="23" passed="23" failed="0"
+total="25" passed="25" failed="0"
 ```
 
 ## First 5 Minutes Test
@@ -146,6 +148,8 @@ Run this after any economy change:
 - Default `gali-tapri` remains unlocked.
 - Offline reward remains capped.
 - Rush cannot be triggered during cooldown.
+- Event multipliers only apply while an event is active.
+- Event cooldown and rotation survive save/load.
 - Prestige preview remains locked until airport/lounge and 1B lifetime rupees.
 - Prestige reset preserves Masala Legacy and skill levels.
 - Skill effects still apply after save/load.

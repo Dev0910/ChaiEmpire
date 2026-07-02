@@ -17,6 +17,7 @@ namespace ChaiEmpire
         {
             this.content = content;
             State = state;
+            EnsureStateDefaults();
         }
 
         public ChaiGameState State { get; private set; }
@@ -60,7 +61,7 @@ namespace ChaiEmpire
                 skillTapMultiplier += GetSkillBonus(PrestigeSkillEffect.RushTapMultiplier);
             }
 
-            return flat * tapMultiplier * skillTapMultiplier * GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetRushMultiplier();
+            return flat * tapMultiplier * skillTapMultiplier * GetEventTapMultiplier() * GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetRushMultiplier();
         }
 
         public BigDouble GetPassiveRupeesPerSecond()
@@ -86,7 +87,7 @@ namespace ChaiEmpire
                 }
             }
 
-            BigDouble multiplier = GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetSkillMultiplier(PrestigeSkillEffect.PassiveMultiplier);
+            BigDouble multiplier = GetDemandMultiplier() * GetGlobalMultiplier() * GetLegacyMultiplier() * GetSkillMultiplier(PrestigeSkillEffect.PassiveMultiplier) * GetEventPassiveMultiplier();
             if (includeRush)
             {
                 multiplier *= GetRushMultiplier();
@@ -123,6 +124,7 @@ namespace ChaiEmpire
 
             State.RushRemainingSeconds = Math.Max(0, State.RushRemainingSeconds - deltaSeconds);
             State.RushCooldownSeconds = Math.Max(0, State.RushCooldownSeconds - deltaSeconds);
+            UpdateEventTimers(deltaSeconds);
         }
 
         public bool TryTriggerRushHour()
@@ -244,6 +246,42 @@ namespace ChaiEmpire
             return true;
         }
 
+        public ChaiEventDefinition GetNextEventDefinition()
+        {
+            return ChaiEvents.GetByRotationIndex(GetEventState().CompletedCount);
+        }
+
+        public bool TryGetActiveEvent(out ChaiEventDefinition definition)
+        {
+            EventState eventState = GetEventState();
+            if (eventState.IsActive && ChaiEvents.TryGet(eventState.ActiveEventId, out definition))
+            {
+                return true;
+            }
+
+            definition = null;
+            return false;
+        }
+
+        public bool TryStartEvent(string eventId)
+        {
+            EventState eventState = GetEventState();
+            if (eventState.IsActive || eventState.CooldownSeconds > 0)
+            {
+                return false;
+            }
+
+            if (!ChaiEvents.TryGet(eventId, out ChaiEventDefinition definition))
+            {
+                return false;
+            }
+
+            eventState.ActiveEventId = definition.Id;
+            eventState.RemainingSeconds = definition.DurationSeconds;
+            eventState.CooldownSeconds = 0;
+            return true;
+        }
+
         public BigDouble GetUpgradeCost(string upgradeId)
         {
             if (!content.TryGetUpgrade(upgradeId, out UpgradeDefinition upgrade))
@@ -289,7 +327,7 @@ namespace ChaiEmpire
                 }
             }
 
-            return multiplier + GetSkillBonus(PrestigeSkillEffect.GlobalMultiplier);
+            return multiplier + GetSkillBonus(PrestigeSkillEffect.GlobalMultiplier) + GetEventGlobalMultiplierBonus();
         }
 
         public double GetLegacyMultiplier()
@@ -310,6 +348,16 @@ namespace ChaiEmpire
         public double GetOfflineCapSeconds()
         {
             return content.OfflineCapSeconds + GetSkillBonus(PrestigeSkillEffect.OfflineCapSecondsBonus);
+        }
+
+        public double GetEventTapMultiplier()
+        {
+            return 1 + GetActiveEventBonus(definition => definition.TapMultiplierBonus);
+        }
+
+        public double GetEventPassiveMultiplier()
+        {
+            return 1 + GetActiveEventBonus(definition => definition.PassiveMultiplierBonus);
         }
 
         private BigDouble GetUpgradeCost(UpgradeDefinition upgrade, int currentLevel)
@@ -361,6 +409,70 @@ namespace ChaiEmpire
             }
 
             return State.Prestige;
+        }
+
+        private EventState GetEventState()
+        {
+            if (State.Event == null)
+            {
+                State.Event = new EventState();
+            }
+
+            return State.Event;
+        }
+
+        private void EnsureStateDefaults()
+        {
+            if (State.Prestige == null)
+            {
+                State.Prestige = new PrestigeState();
+            }
+
+            if (State.Event == null)
+            {
+                State.Event = new EventState();
+            }
+        }
+
+        private void UpdateEventTimers(double deltaSeconds)
+        {
+            EventState eventState = GetEventState();
+            if (eventState.IsActive)
+            {
+                if (!ChaiEvents.TryGet(eventState.ActiveEventId, out ChaiEventDefinition activeEvent))
+                {
+                    eventState.ActiveEventId = null;
+                    eventState.RemainingSeconds = 0;
+                    return;
+                }
+
+                eventState.RemainingSeconds = Math.Max(0, eventState.RemainingSeconds - deltaSeconds);
+                if (eventState.RemainingSeconds <= 0)
+                {
+                    eventState.ActiveEventId = null;
+                    eventState.CooldownSeconds = activeEvent.CooldownSeconds;
+                    eventState.CompletedCount++;
+                }
+
+                return;
+            }
+
+            eventState.CooldownSeconds = Math.Max(0, eventState.CooldownSeconds - deltaSeconds);
+        }
+
+        private double GetEventGlobalMultiplierBonus()
+        {
+            return GetActiveEventBonus(definition => definition.GlobalMultiplierBonus);
+        }
+
+        private double GetActiveEventBonus(Func<ChaiEventDefinition, double> selector)
+        {
+            if (TryGetActiveEvent(out ChaiEventDefinition definition))
+            {
+                return selector(definition);
+            }
+
+            return 0;
         }
 
         private static int ConvertLegacyToSkillPoints(BigDouble legacy)

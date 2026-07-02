@@ -164,6 +164,9 @@ Keep these public methods stable if possible:
 | `ChaiGame.TrySpendSkillPoint(string skillId)` | Spends one skill point on a prestige skill. |
 | `ChaiGame.GetUpgradeCost(string upgradeId)` | Returns skill-adjusted upgrade cost. |
 | `ChaiGame.GetLocationUnlockCost(string locationId)` | Returns skill-adjusted location cost. |
+| `ChaiGame.GetNextEventDefinition()` | Returns the next optional live event in rotation. |
+| `ChaiGame.TryStartEvent(string eventId)` | Starts an optional timed event if ready. |
+| `ChaiGame.TryGetActiveEvent(out ChaiEventDefinition definition)` | Returns the current active event. |
 
 ## Content Expansion Steps
 
@@ -215,6 +218,7 @@ Current edit-mode tests validate:
 - Save round trip.
 - Prestige preview lock/unlock condition.
 - Prestige reset and skill effects.
+- Optional event activation, save fields, and timed multipliers.
 - JSON content parsing and validation.
 
 Use edit-mode tests for economy because they are fast and do not require scene loading.

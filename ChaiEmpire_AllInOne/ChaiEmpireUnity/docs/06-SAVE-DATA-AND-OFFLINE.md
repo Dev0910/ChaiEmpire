@@ -74,6 +74,7 @@ Current runtime state fields:
 | `LastSavedUtcTicks` | `long` | UTC timestamp ticks for offline calculation. |
 | `RushRemainingSeconds` | `double` | Current active rush time. |
 | `RushCooldownSeconds` | `double` | Remaining rush cooldown. |
+| `Event` | `EventState` | Active optional event, event cooldown, and rotation progress. |
 | `Prestige` | `PrestigeState` | Future prestige state. |
 | `UpgradeLevels` | `List<UpgradeLevelEntry>` | Upgrade IDs and levels. |
 | `UnlockedLocations` | `List<LocationUnlockEntry>` | Location IDs that are unlocked. |
@@ -93,6 +94,7 @@ Expected JSON fields:
 | `lastSavedUtcTicks` | UTC ticks. |
 | `rushRemainingSeconds` | Active rush seconds. |
 | `rushCooldownSeconds` | Rush cooldown seconds. |
+| `eventState` | Event DTO. |
 | `prestige` | Prestige DTO. |
 | `upgradeLevels` | List of upgrade level DTOs. |
 | `unlockedLocations` | List of location unlock DTOs. |
@@ -104,6 +106,15 @@ Prestige DTO:
 | `masalaLegacy` | String representation of `BigDouble`. |
 | `unspentSkillPoints` | Future skill tree points. |
 | `skills` | List of skill ID/level pairs. |
+
+Event DTO:
+
+| JSON field | Notes |
+| --- | --- |
+| `activeEventId` | Active event ID, or empty/null if no event is active. |
+| `remainingSeconds` | Remaining active event time. |
+| `cooldownSeconds` | Time until the next event can be started. |
+| `completedCount` | Rotation counter for the next optional event. |
 
 Upgrade level DTO:
 

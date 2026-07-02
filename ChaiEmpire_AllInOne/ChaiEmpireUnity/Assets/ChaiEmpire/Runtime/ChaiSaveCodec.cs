@@ -18,6 +18,13 @@ namespace ChaiEmpire
                 lastSavedUtcTicks = state.LastSavedUtcTicks,
                 rushRemainingSeconds = state.RushRemainingSeconds,
                 rushCooldownSeconds = state.RushCooldownSeconds,
+                eventState = new EventDto
+                {
+                    activeEventId = state.Event?.ActiveEventId,
+                    remainingSeconds = state.Event?.RemainingSeconds ?? 0,
+                    cooldownSeconds = state.Event?.CooldownSeconds ?? 0,
+                    completedCount = state.Event?.CompletedCount ?? 0
+                },
                 prestige = new PrestigeDto
                 {
                     masalaLegacy = SerializeNumber(state.Prestige.MasalaLegacy),
@@ -94,6 +101,13 @@ namespace ChaiEmpire
                 LastSavedUtcTicks = dto.lastSavedUtcTicks,
                 RushRemainingSeconds = Math.Max(0, dto.rushRemainingSeconds),
                 RushCooldownSeconds = Math.Max(0, dto.rushCooldownSeconds),
+                Event = new EventState
+                {
+                    ActiveEventId = string.IsNullOrWhiteSpace(dto.eventState?.activeEventId) ? null : dto.eventState.activeEventId,
+                    RemainingSeconds = Math.Max(0, dto.eventState?.remainingSeconds ?? 0),
+                    CooldownSeconds = Math.Max(0, dto.eventState?.cooldownSeconds ?? 0),
+                    CompletedCount = Math.Max(0, dto.eventState?.completedCount ?? 0)
+                },
                 Prestige = new PrestigeState
                 {
                     MasalaLegacy = ParseNumber(dto.prestige?.masalaLegacy),
@@ -191,9 +205,19 @@ namespace ChaiEmpire
             public long lastSavedUtcTicks;
             public double rushRemainingSeconds;
             public double rushCooldownSeconds;
+            public EventDto eventState;
             public PrestigeDto prestige;
             public List<UpgradeLevelDto> upgradeLevels;
             public List<LocationUnlockDto> unlockedLocations;
+        }
+
+        [Serializable]
+        private sealed class EventDto
+        {
+            public string activeEventId;
+            public double remainingSeconds;
+            public double cooldownSeconds;
+            public int completedCount;
         }
 
         [Serializable]

@@ -165,10 +165,22 @@ Fields:
 | --- | --- |
 | Reward amount | `LoadResult.OfflineReward.RupeesEarned` |
 | Away time | `OfflineReward.RawSeconds` |
-| Efficiency | `ChaiContent.OfflineEfficiency` |
-| Cap | `OfflineReward.CappedSeconds` or `ChaiContent.OfflineCapSeconds` |
+| Efficiency | `ChaiGame.GetOfflineEfficiency()` |
+| Cap | `OfflineReward.CappedSeconds` or `ChaiGame.GetOfflineCapSeconds()` |
 
 The `Claim` button only dismisses the modal; the reward has already been applied during load.
+
+### Live Events
+
+Shows:
+
+- Section title `Live Events`.
+- Active event name, flavor text, effects, and remaining time.
+- Next event name, flavor text, and effects when ready.
+- Cooldown timer when the next event is not ready.
+- A single `Start Event` button when events are available.
+
+Events are optional bonuses and do not block the main loop.
 
 ### Upgrades
 

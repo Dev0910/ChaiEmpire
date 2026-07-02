@@ -15,6 +15,7 @@ namespace ChaiEmpire
         public double RushRemainingSeconds;
         public double RushCooldownSeconds;
         public PrestigeState Prestige = new PrestigeState();
+        public EventState Event = new EventState();
         public List<UpgradeLevelEntry> UpgradeLevels = new List<UpgradeLevelEntry>();
         public List<LocationUnlockEntry> UnlockedLocations = new List<LocationUnlockEntry>();
 
@@ -27,7 +28,8 @@ namespace ChaiEmpire
                 TotalLifetimeRupees = BigDouble.Zero,
                 ChaiServed = BigDouble.Zero,
                 LastSavedUtcTicks = DateTime.UtcNow.Ticks,
-                Prestige = new PrestigeState()
+                Prestige = new PrestigeState(),
+                Event = new EventState()
             };
             state.UnlockLocation("gali-tapri");
             return state;
@@ -125,6 +127,17 @@ namespace ChaiEmpire
                 Skills = new List<PrestigeSkillEntry>();
             }
         }
+    }
+
+    [Serializable]
+    public sealed class EventState
+    {
+        public string ActiveEventId;
+        public double RemainingSeconds;
+        public double CooldownSeconds;
+        public int CompletedCount;
+
+        public bool IsActive => !string.IsNullOrWhiteSpace(ActiveEventId) && RemainingSeconds > 0;
     }
 
     [Serializable]

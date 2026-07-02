@@ -98,13 +98,20 @@ These are future ideas, not implemented.
 | Poha | Morning rush modifier. |
 | Pakora | Monsoon event modifier. |
 
-### Events
+### Implemented Events
+
+Current events rotate through the `ChaiEvents` catalog and are optional timed bonuses.
+
+| Event ID | Name | Duration | Cooldown | Effect |
+| --- | --- | ---: | ---: | --- |
+| `monsoon-chai-rush` | Monsoon Chai Rush | 3m | 10m | x1.5 tap, x1.25 passive. |
+| `diwali-sweet-combo` | Diwali Sweet Combo | 5m | 15m | x1.25 passive, x1.2 all income. |
+| `cricket-match-night` | Cricket Match Night | 4m | 12m | x1.25 tap, x1.5 passive. |
+
+### Future Events
 
 | Event | Possible mechanic |
 | --- | --- |
-| Monsoon Chai Rush | Higher tap value and snack demand for a timed window. |
-| Diwali Sweet Combo | Add temporary sweet counters and gift box upgrades. |
-| Cricket Match Night | Long active session bonus with crowd waves. |
 | Exam Season | College Canteen production bonus. |
 | Office Deadline Week | IT Park demand bonus. |
 | Winter Morning | Adrak/Gur recipes gain bonuses. |
