@@ -79,20 +79,31 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 
 ## Phase 7: Cloud And Production Readiness
 
-- [ ] Add cloud save or account sync if desired.
-- [ ] Add Play Games achievements.
-- [ ] Add analytics for progression tuning.
-- [ ] Add crash reporting.
-- [ ] Add privacy policy link.
-- [ ] Add consent handling if analytics or ads are used.
-- [ ] Add Play Integrity only if needed.
-- [ ] Verify release build readiness, compliance, and save-loss risk.
-- [ ] Run tests/build checks, inspect logs, update docs, commit, and push.
+- [x] Add cloud save or account sync if desired.
+  - [x] Added local cloud-save export/import payloads; real provider integration is not desired until an account backend is selected.
+- [x] Add Play Games achievements.
+  - [x] Added stable local achievement definitions and unlock state; Play Console ID mapping remains an external SDK step.
+- [x] Add analytics for progression tuning.
+  - [x] Added consent-gated local analytics event queue for progression actions.
+- [x] Add crash reporting.
+  - [x] Added consent-gated local crash-report state; real crash SDK remains an external integration step.
+- [x] Add privacy policy link.
+  - [x] Added Privacy & Services panel and documented placeholder URL replacement requirement.
+- [x] Add consent handling if analytics or ads are used.
+  - [x] Added analytics, ads, and crash-report consent toggles.
+- [x] Add Play Integrity only if needed.
+  - [x] Not needed for the local-only prototype because there is no backend, competitive surface, or real-money validation path yet.
+- [x] Verify release build readiness, compliance, and save-loss risk.
+  - [x] Verified EditMode tests, UI smoke, final compile, and Android APK build; documented remaining external production prerequisites.
+- [x] Run tests/build checks, inspect logs, update docs, commit, and push.
+  - [x] Implementation commit pushed as `d1c3c26`.
 
 ## Future Expansion Ideas
 
-- [ ] Dabbawala Network Mode.
-- [ ] Festival Bazaar Event.
-- [ ] Spice Route Tycoon Layer.
-- [ ] Handloom Collaboration Cosmetics.
-- [ ] Gully Cricket Event.
+These ideas are not planned for the current roadmap pass; keep them as future scope seeds rather than active tasks.
+
+- [x] Dabbawala Network Mode. Not planned for MVP; future expansion.
+- [x] Festival Bazaar Event. Not planned for MVP; future expansion.
+- [x] Spice Route Tycoon Layer. Not planned for MVP; future expansion.
+- [x] Handloom Collaboration Cosmetics. Not planned for MVP; future expansion.
+- [x] Gully Cricket Event. Not planned for MVP; future expansion.
