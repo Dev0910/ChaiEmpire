@@ -303,6 +303,7 @@ Keep production feedback lightweight for low-end Android devices:
 
 | Action | Feedback |
 | --- | --- |
+| Any enabled button | Short generated click. |
 | Tap Kettle | Button scale, tiny floating `+Rs`, persistent kettle steam ambience. |
 | Serve Queue | Short status toast and rupee float. |
 | Buy Upgrade | Card pulse, level increment, toast. |

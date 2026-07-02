@@ -1,0 +1,17 @@
+{
+  "name": "ChaiEmpire.Runtime",
+  "rootNamespace": "ChaiEmpire",
+  "references": [
+    "UnityEngine.UI",
+    "UnityEngine.AudioModule"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -235,6 +235,7 @@ Every important action should have immediate feedback.
 
 | Action | Current feedback |
 | --- | --- |
+| Any enabled button press | Short generated click played through the runtime canvas `AudioSource`. |
 | Tap Kettle | Status message `Fresh cutting chai`. |
 | Serve Queue | Status message `Queue served`. |
 | Buy upgrade | Status message `<Upgrade> upgraded`. |
@@ -249,8 +250,19 @@ Future polish:
 - Add subtle button scale animation.
 - Add floating rupee text.
 - Add queue/customer animation.
-- Add sound for tap, purchase, unlock, and rush.
+- Add distinct purchase, unlock, and rush sounds.
 - Add haptics for major unlocks.
+
+### Audio
+
+Button press audio is generated at runtime by `ChaiGamePresenter`.
+
+Current behavior:
+
+- `Chai Empire Button Press` is a short mono `AudioClip`.
+- The clip is generated from a decaying sine wave, not imported from disk.
+- The clip plays for enabled buttons before the command-specific action runs.
+- The nested project enables `com.unity.modules.audio` for `AudioSource` and `AudioClip`.
 
 ## Mobile Readability Rules
 

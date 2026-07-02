@@ -20,6 +20,7 @@ namespace ChaiEmpire
         private static readonly Color Rose = new Color(0.65f, 0.17f, 0.27f);
         private static readonly Color Disabled = new Color(0.45f, 0.48f, 0.48f);
         private static Sprite circleSprite;
+        private static AudioClip buttonPressClip;
 
         private readonly List<UpgradeRow> upgradeRows = new List<UpgradeRow>();
         private readonly List<LocationRow> locationRows = new List<LocationRow>();
@@ -27,6 +28,7 @@ namespace ChaiEmpire
 
         private ChaiContent content;
         private ChaiGame game;
+        private AudioSource audioSource;
         private Text rupeesText;
         private Text rateText;
         private Text tapText;
@@ -149,6 +151,10 @@ namespace ChaiEmpire
             EnsureEventSystem();
 
             Canvas canvas = CreateCanvas();
+            audioSource = canvas.gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0;
+
             GameObject scrollObject = CreateChild("Scroll View", canvas.transform);
             RectTransform scrollRect = scrollObject.GetComponent<RectTransform>();
             scrollRect.anchorMin = Vector2.zero;
@@ -398,7 +404,11 @@ namespace ChaiEmpire
             offlineRewardCapText = CreateText("Offline Reward Cap", card.transform, string.Empty, 24, Rose, TextAnchor.MiddleCenter);
 
             Button claim = CreateButton("Claim Offline Reward", card.transform, "Claim", 30, Saffron, 82);
-            claim.onClick.AddListener(HideOfflineReward);
+            claim.onClick.AddListener(() =>
+            {
+                PlayButtonPressSound();
+                HideOfflineReward();
+            });
 
             offlineRewardModal.SetActive(false);
         }
@@ -413,6 +423,7 @@ namespace ChaiEmpire
             Button kettle = CreateButton("Brew Kettle", actions.transform, "Tap Kettle", 52, Saffron, 96);
             kettle.onClick.AddListener(() =>
             {
+                PlayButtonPressSound();
                 game.TapKettle();
                 SetStatus("Fresh cutting chai");
                 RefreshAll();
@@ -421,6 +432,7 @@ namespace ChaiEmpire
             Button customers = CreateButton("Customer Queue", actions.transform, "Serve Queue", 34, Leaf, 76);
             customers.onClick.AddListener(() =>
             {
+                PlayButtonPressSound();
                 game.TapCustomerQueue();
                 SetStatus("Queue served");
                 RefreshAll();
@@ -429,6 +441,7 @@ namespace ChaiEmpire
             rushButton = CreateButton("Rush Hour", actions.transform, "Rush Hour", 34, Rose, 76);
             rushButton.onClick.AddListener(() =>
             {
+                PlayButtonPressSound();
                 if (game.TryTriggerRushHour())
                 {
                     SetStatus("Rush hour: 2x for 20 sec");
@@ -456,6 +469,7 @@ namespace ChaiEmpire
                 Text label = button.GetComponentInChildren<Text>();
                 button.onClick.AddListener(() =>
                 {
+                    PlayButtonPressSound();
                     if (game.TryBuyUpgrade(captured.Id))
                     {
                         SetStatus(captured.DisplayName + " upgraded");
@@ -488,6 +502,7 @@ namespace ChaiEmpire
                 Text label = button.GetComponentInChildren<Text>();
                 button.onClick.AddListener(() =>
                 {
+                    PlayButtonPressSound();
                     if (game.TryUnlockLocation(captured.Id))
                     {
                         SetStatus(captured.DisplayName + " unlocked");
@@ -616,6 +631,7 @@ namespace ChaiEmpire
 
         private void HandleTutorialPrimary()
         {
+            PlayButtonPressSound();
             ChaiTutorialPrompt prompt = ChaiTutorial.GetPrompt(game.State, content);
             switch (prompt.PrimaryAction)
             {
@@ -636,6 +652,7 @@ namespace ChaiEmpire
 
         private void HandleResetSave()
         {
+            PlayButtonPressSound();
             if (!resetSaveArmed)
             {
                 resetSaveArmed = true;
@@ -661,6 +678,21 @@ namespace ChaiEmpire
             }
 
             RefreshAll();
+        }
+
+        private void PlayButtonPressSound()
+        {
+            PlaySound(GetButtonPressClip(), 0.42f);
+        }
+
+        private void PlaySound(AudioClip clip, float volume)
+        {
+            if (audioSource == null || clip == null)
+            {
+                return;
+            }
+
+            audioSource.PlayOneShot(clip, volume);
         }
 
         private void ShowOfflineReward(OfflineReward reward)
@@ -950,6 +982,30 @@ namespace ChaiEmpire
             }
 
             return font;
+        }
+
+        private static AudioClip GetButtonPressClip()
+        {
+            if (buttonPressClip != null)
+            {
+                return buttonPressClip;
+            }
+
+            const int sampleRate = 44100;
+            const float durationSeconds = 0.055f;
+            int sampleCount = Mathf.CeilToInt(sampleRate * durationSeconds);
+            float[] samples = new float[sampleCount];
+
+            for (int i = 0; i < sampleCount; i++)
+            {
+                float t = i / (float)sampleRate;
+                float envelope = Mathf.Exp(-52f * t);
+                samples[i] = Mathf.Sin(2f * Mathf.PI * 780f * t) * envelope * 0.55f;
+            }
+
+            buttonPressClip = AudioClip.Create("Chai Empire Button Press", sampleCount, 1, sampleRate, false);
+            buttonPressClip.SetData(samples, 0);
+            return buttonPressClip;
         }
 
         private static Sprite GetCircleSprite()
