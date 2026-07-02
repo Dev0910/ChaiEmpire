@@ -29,7 +29,7 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 ## Phase 2: Visual And Audio Identity
 
 - [x] Add kettle/stove art.
-- [ ] Add steam animation.
+- [x] Add steam animation.
 - [ ] Add customer queue visuals.
 - [ ] Add UPI QR prop.
 - [ ] Add location-specific backgrounds.
