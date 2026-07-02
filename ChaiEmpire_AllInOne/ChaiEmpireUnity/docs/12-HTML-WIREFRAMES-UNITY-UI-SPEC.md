@@ -306,8 +306,8 @@ Keep production feedback lightweight for low-end Android devices:
 | Any enabled button | Short generated click. |
 | Tap Kettle | Button scale, tiny floating `+Rs`, persistent kettle steam ambience. |
 | Serve Queue | Short status toast and rupee float. |
-| Buy Upgrade | Card pulse, level increment, toast. |
-| Unlock Location | Location card unlock pulse, header location update. |
+| Buy Upgrade | Card pulse, level increment, toast, generated purchase cue. |
+| Unlock Location | Location card unlock pulse, header location update, generated unlock cue. |
 | Rush Hour | Timer/progress meter, 2x state on action area. |
 | Offline Claim | Modal dismiss and brief rupee total pulse. |
 

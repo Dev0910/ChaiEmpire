@@ -21,6 +21,8 @@ namespace ChaiEmpire
         private static readonly Color Disabled = new Color(0.45f, 0.48f, 0.48f);
         private static Sprite circleSprite;
         private static AudioClip buttonPressClip;
+        private static AudioClip purchaseClip;
+        private static AudioClip unlockClip;
 
         private readonly List<UpgradeRow> upgradeRows = new List<UpgradeRow>();
         private readonly List<LocationRow> locationRows = new List<LocationRow>();
@@ -472,6 +474,7 @@ namespace ChaiEmpire
                     PlayButtonPressSound();
                     if (game.TryBuyUpgrade(captured.Id))
                     {
+                        PlayPurchaseSound();
                         SetStatus(captured.DisplayName + " upgraded");
                         RefreshAll();
                     }
@@ -505,6 +508,7 @@ namespace ChaiEmpire
                     PlayButtonPressSound();
                     if (game.TryUnlockLocation(captured.Id))
                     {
+                        PlayUnlockSound();
                         SetStatus(captured.DisplayName + " unlocked");
                         RefreshAll();
                     }
@@ -642,6 +646,7 @@ namespace ChaiEmpire
                 case ChaiTutorialAction.BuyFirstUpgrade:
                     if (game.TryBuyUpgrade(ChaiTutorial.FirstUpgradeId))
                     {
+                        PlayPurchaseSound();
                         SetStatus("Strong Tea Leaves upgraded");
                     }
                     break;
@@ -683,6 +688,16 @@ namespace ChaiEmpire
         private void PlayButtonPressSound()
         {
             PlaySound(GetButtonPressClip(), 0.42f);
+        }
+
+        private void PlayPurchaseSound()
+        {
+            PlaySound(GetPurchaseClip(), 0.55f);
+        }
+
+        private void PlayUnlockSound()
+        {
+            PlaySound(GetUnlockClip(), 0.62f);
         }
 
         private void PlaySound(AudioClip clip, float volume)
@@ -1006,6 +1021,46 @@ namespace ChaiEmpire
             buttonPressClip = AudioClip.Create("Chai Empire Button Press", sampleCount, 1, sampleRate, false);
             buttonPressClip.SetData(samples, 0);
             return buttonPressClip;
+        }
+
+        private static AudioClip GetPurchaseClip()
+        {
+            if (purchaseClip == null)
+            {
+                purchaseClip = CreateToneClip("Chai Empire Purchase", 0.12f, 660f, 990f, 28f, 0.48f);
+            }
+
+            return purchaseClip;
+        }
+
+        private static AudioClip GetUnlockClip()
+        {
+            if (unlockClip == null)
+            {
+                unlockClip = CreateToneClip("Chai Empire Unlock", 0.18f, 520f, 780f, 18f, 0.5f);
+            }
+
+            return unlockClip;
+        }
+
+        private static AudioClip CreateToneClip(string name, float durationSeconds, float startFrequency, float endFrequency, float decay, float gain)
+        {
+            const int sampleRate = 44100;
+            int sampleCount = Mathf.CeilToInt(sampleRate * durationSeconds);
+            float[] samples = new float[sampleCount];
+
+            for (int i = 0; i < sampleCount; i++)
+            {
+                float t = i / (float)sampleRate;
+                float progress = t / durationSeconds;
+                float frequency = Mathf.Lerp(startFrequency, endFrequency, progress);
+                float envelope = Mathf.Exp(-decay * t);
+                samples[i] = Mathf.Sin(2f * Mathf.PI * frequency * t) * envelope * gain;
+            }
+
+            AudioClip clip = AudioClip.Create(name, sampleCount, 1, sampleRate, false);
+            clip.SetData(samples, 0);
+            return clip;
         }
 
         private static Sprite GetCircleSprite()

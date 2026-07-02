@@ -238,8 +238,8 @@ Every important action should have immediate feedback.
 | Any enabled button press | Short generated click played through the runtime canvas `AudioSource`. |
 | Tap Kettle | Status message `Fresh cutting chai`. |
 | Serve Queue | Status message `Queue served`. |
-| Buy upgrade | Status message `<Upgrade> upgraded`. |
-| Unlock location | Status message `<Location> unlocked`. |
+| Buy upgrade | Status message `<Upgrade> upgraded` and generated purchase cue. |
+| Unlock location | Status message `<Location> unlocked` and generated unlock cue. |
 | Trigger Rush Hour | Status message `Rush hour: 2x for 20 sec`. |
 | Return after offline reward | Offline reward modal plus status message `Welcome back: Rs <amount>`. |
 | Tutorial primary tap | Same feedback as the action it performs. |
@@ -250,7 +250,7 @@ Future polish:
 - Add subtle button scale animation.
 - Add floating rupee text.
 - Add queue/customer animation.
-- Add distinct purchase, unlock, and rush sounds.
+- Add distinct rush sound.
 - Add haptics for major unlocks.
 
 ### Audio
@@ -260,8 +260,10 @@ Button press audio is generated at runtime by `ChaiGamePresenter`.
 Current behavior:
 
 - `Chai Empire Button Press` is a short mono `AudioClip`.
-- The clip is generated from a decaying sine wave, not imported from disk.
-- The clip plays for enabled buttons before the command-specific action runs.
+- `Chai Empire Purchase` and `Chai Empire Unlock` are longer mono success clips.
+- Clips are generated from decaying sine waves, not imported from disk.
+- The button clip plays before the command-specific action runs.
+- Purchase/unlock clips play only after the economy action succeeds.
 - The nested project enables `com.unity.modules.audio` for `AudioSource` and `AudioClip`.
 
 ## Mobile Readability Rules
