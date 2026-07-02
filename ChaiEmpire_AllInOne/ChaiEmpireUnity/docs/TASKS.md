@@ -33,7 +33,7 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 - [x] Add customer queue visuals.
 - [x] Add UPI QR prop.
 - [x] Add location-specific backgrounds.
-- [ ] Add button press sounds.
+- [x] Add button press sounds.
 - [ ] Add purchase/unlock sounds.
 - [ ] Add optional haptics.
 - [ ] Review and document all imported or generated assets.
