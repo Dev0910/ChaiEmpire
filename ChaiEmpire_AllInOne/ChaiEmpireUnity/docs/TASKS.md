@@ -41,11 +41,11 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 
 ## Phase 3: Data-Driven Content
 
-- [ ] Move upgrades and locations to ScriptableObjects or external data.
-- [ ] Add editor validation for duplicate IDs and invalid values.
-- [ ] Add content export/import workflow if using spreadsheets.
-- [ ] Keep deterministic default content for tests.
-- [ ] Run content/economy tests, update docs, commit, and push.
+- [x] Move upgrades and locations to ScriptableObjects or external data.
+- [x] Add editor validation for duplicate IDs and invalid values.
+- [x] Add content export/import workflow if using spreadsheets.
+- [x] Keep deterministic default content for tests.
+- [x] Run content/economy tests, update docs, commit, and push.
 
 ## Phase 4: Prestige And Skill Tree
 
