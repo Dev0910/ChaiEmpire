@@ -69,13 +69,13 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 
 ## Phase 6: Monetization-Safe Options
 
-- [ ] Add optional rewarded ad for temporary 2x offline claim.
-- [ ] Add optional rewarded ad for short production boost.
-- [ ] Add cosmetic stall themes.
-- [ ] Add optional no-ads purchase.
-- [ ] Add cosmetic cup/signboard packs.
-- [ ] Verify a non-paying player can enjoy the full core loop.
-- [ ] Run tests/play checks, inspect logs, update docs, commit, and push.
+- [x] Add optional rewarded ad for temporary 2x offline claim.
+- [x] Add optional rewarded ad for short production boost.
+- [x] Add cosmetic stall themes.
+- [x] Add optional no-ads purchase.
+- [x] Add cosmetic cup/signboard packs.
+- [x] Verify a non-paying player can enjoy the full core loop.
+- [x] Run tests/play checks, inspect logs, update docs, commit, and push.
 
 ## Phase 7: Cloud And Production Readiness
 
