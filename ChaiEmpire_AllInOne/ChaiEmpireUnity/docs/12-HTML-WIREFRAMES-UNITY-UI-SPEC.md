@@ -122,7 +122,7 @@ Recommended production structure:
 | Region | Content | Behavior |
 | --- | --- | --- |
 | Header | `Chai Empire`, current highest location, demand multiplier. | Always visible at top of scroll. |
-| Stall Art | Procedural kettle, stove, burner, and flame shapes. | Static first-screen visual anchor; named objects support later steam animation. |
+| Stall Art | Procedural kettle, stove, burner, flame, and steam shapes. | First-screen visual anchor; steam wisps rise, sway, scale, and fade. |
 | Stats | Rupees, passive/sec, tap value, chai served or lifetime. | Refresh at fixed cadence. |
 | Tutorial | First tap and first upgrade prompt. | Visible only until Strong Tea Leaves is bought. |
 | Actions | Tap Kettle, Serve Queue, Rush Hour. | Highest priority interaction area. |
@@ -303,7 +303,7 @@ Keep production feedback lightweight for low-end Android devices:
 
 | Action | Feedback |
 | --- | --- |
-| Tap Kettle | Button scale, tiny floating `+Rs`, optional kettle steam pulse. |
+| Tap Kettle | Button scale, tiny floating `+Rs`, persistent kettle steam ambience. |
 | Serve Queue | Short status toast and rupee float. |
 | Buy Upgrade | Card pulse, level increment, toast. |
 | Unlock Location | Location card unlock pulse, header location update. |

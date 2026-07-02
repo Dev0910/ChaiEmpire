@@ -23,6 +23,7 @@ namespace ChaiEmpire
 
         private readonly List<UpgradeRow> upgradeRows = new List<UpgradeRow>();
         private readonly List<LocationRow> locationRows = new List<LocationRow>();
+        private readonly List<SteamWisp> steamWisps = new List<SteamWisp>();
 
         private ChaiContent content;
         private ChaiGame game;
@@ -52,6 +53,7 @@ namespace ChaiEmpire
         private float saveTimer;
         private float statusTimer;
         private float resetConfirmTimer;
+        private float steamTimer;
         private bool resetSaveArmed;
 
         private void Start()
@@ -86,6 +88,7 @@ namespace ChaiEmpire
             }
 
             game.Tick(Time.deltaTime);
+            AnimateSteam(Time.deltaTime);
             saveTimer += Time.deltaTime;
             refreshTimer += Time.deltaTime;
 
@@ -239,6 +242,8 @@ namespace ChaiEmpire
             Color kettle = new Color(0.78f, 0.86f, 0.83f);
             Color kettleShade = new Color(0.12f, 0.42f, 0.42f);
 
+            steamWisps.Clear();
+
             GameObject art = CreatePanel("Stall Art", parent, backdrop, 360);
             CreateArtShape("Back Wall Glow", art.transform, new Vector2(0, 28), new Vector2(820, 250), new Color(1f, 0.91f, 0.68f), GetCircleSprite(), 0);
             CreateArtShape("Counter Top", art.transform, new Vector2(0, -124), new Vector2(900, 56), counter, null, 0);
@@ -260,6 +265,9 @@ namespace ChaiEmpire
             CreateArtShape("Kettle Highlight", art.transform, new Vector2(-72, 86), new Vector2(80, 42), new Color(1f, 0.96f, 0.82f, 0.75f), GetCircleSprite(), 0);
             CreateArtShape("Kettle Lid", art.transform, new Vector2(0, 155), new Vector2(176, 42), brass, GetCircleSprite(), 0);
             CreateArtShape("Kettle Knob", art.transform, new Vector2(0, 184), new Vector2(46, 34), counter, GetCircleSprite(), 0);
+            CreateSteamWisp("Steam Wisp A", art.transform, new Vector2(-52, 214), new Vector2(34, 78), 0f);
+            CreateSteamWisp("Steam Wisp B", art.transform, new Vector2(6, 224), new Vector2(28, 88), 0.85f);
+            CreateSteamWisp("Steam Wisp C", art.transform, new Vector2(62, 210), new Vector2(30, 72), 1.7f);
         }
 
         private void BuildStats(Transform parent)
@@ -611,6 +619,28 @@ namespace ChaiEmpire
             offlineRewardModal.SetActive(true);
         }
 
+        private void AnimateSteam(float deltaSeconds)
+        {
+            if (steamWisps.Count == 0 || deltaSeconds <= 0)
+            {
+                return;
+            }
+
+            steamTimer += deltaSeconds;
+            for (int i = 0; i < steamWisps.Count; i++)
+            {
+                SteamWisp wisp = steamWisps[i];
+                float cycle = Mathf.Repeat(steamTimer + wisp.PhaseSeconds, 2.4f) / 2.4f;
+                float rise = Mathf.Lerp(0, 58, cycle);
+                float sway = Mathf.Sin((cycle * Mathf.PI * 2f) + wisp.PhaseSeconds) * 18f;
+                float alpha = Mathf.Sin(cycle * Mathf.PI) * 0.44f;
+
+                wisp.Rect.anchoredPosition = wisp.BasePosition + new Vector2(sway, rise);
+                wisp.Rect.sizeDelta = Vector2.Lerp(wisp.BaseSize, wisp.BaseSize * 1.35f, cycle);
+                wisp.Image.color = new Color(1f, 0.96f, 0.86f, alpha);
+            }
+        }
+
         private void HideOfflineReward()
         {
             if (offlineRewardModal != null)
@@ -709,6 +739,13 @@ namespace ChaiEmpire
             image.sprite = sprite;
             image.raycastTarget = false;
             return image;
+        }
+
+        private void CreateSteamWisp(string name, Transform parent, Vector2 basePosition, Vector2 baseSize, float phaseSeconds)
+        {
+            Image image = CreateArtShape(name, parent, basePosition, baseSize, new Color(1f, 0.96f, 0.86f, 0.22f), GetCircleSprite(), 0);
+            RectTransform rect = image.GetComponent<RectTransform>();
+            steamWisps.Add(new SteamWisp(rect, image, basePosition, baseSize, phaseSeconds));
         }
 
         private static Button CreateButton(string name, Transform parent, string text, int fontSize, Color color, float height)
@@ -862,6 +899,24 @@ namespace ChaiEmpire
             public LocationDefinition Definition { get; }
             public Button Button { get; }
             public Text Label { get; }
+        }
+
+        private sealed class SteamWisp
+        {
+            public SteamWisp(RectTransform rect, Image image, Vector2 basePosition, Vector2 baseSize, float phaseSeconds)
+            {
+                Rect = rect;
+                Image = image;
+                BasePosition = basePosition;
+                BaseSize = baseSize;
+                PhaseSeconds = phaseSeconds;
+            }
+
+            public RectTransform Rect { get; }
+            public Image Image { get; }
+            public Vector2 BasePosition { get; }
+            public Vector2 BaseSize { get; }
+            public float PhaseSeconds { get; }
         }
     }
 }
