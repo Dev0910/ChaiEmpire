@@ -4,13 +4,13 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
 
 ## Phase 1: Stabilize MVP
 
-- [ ] Save robustness
+- [x] Save robustness
   - [x] Add malformed save recovery.
   - [x] Add save/load safety tests.
   - [x] Document recovery behavior and migration notes.
   - [x] Run targeted EditMode tests.
   - [x] Inspect Unity logs.
-  - [ ] Commit and push.
+  - [x] Commit and push.
 - [ ] Tutorial
   - [ ] Add a short tutorial overlay or guided first taps.
   - [ ] Verify a new player can identify the first action quickly.
