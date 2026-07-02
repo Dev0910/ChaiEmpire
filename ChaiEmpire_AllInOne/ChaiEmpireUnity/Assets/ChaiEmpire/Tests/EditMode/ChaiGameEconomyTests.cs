@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using BreakInfinity;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace ChaiEmpire.Tests
 {
@@ -167,6 +168,40 @@ namespace ChaiEmpire.Tests
 
             Assert.That(defaultCount, Is.EqualTo(1));
             Assert.That(defaultLocationId, Is.EqualTo("gali-tapri"));
+        }
+
+        [Test]
+        public void Default_content_json_parses_and_matches_built_in_catalog()
+        {
+            TextAsset contentAsset = Resources.Load<TextAsset>("ChaiEmpire/default-content");
+            Assert.That(contentAsset, Is.Not.Null);
+
+            Assert.That(ChaiContentData.TryFromJson(contentAsset.text, out ChaiContentData data, out string error), Is.True, error);
+
+            ChaiContent jsonContent = data.ToContent();
+            ChaiContent builtInContent = ChaiContent.CreateBuiltInDefault();
+
+            AssertContentMatches(jsonContent, builtInContent);
+            Assert.That(jsonContent.GetUpgrade("strong-tea").BaseCost.ToDouble(), Is.EqualTo(10d).Within(0.001d));
+            Assert.That(jsonContent.GetLocation("gali-tapri").UnlockedByDefault, Is.True);
+        }
+
+        [Test]
+        public void Content_validator_rejects_duplicate_ids_and_invalid_values()
+        {
+            ChaiContentData data = ChaiContentData.CreateBuiltInDefault();
+            data.offlineEfficiency = 2d;
+            data.prestigeUnlockRupees = "not-a-number";
+            data.upgrades[1].id = data.upgrades[0].id;
+            data.locations[1].id = data.locations[0].id;
+
+            IReadOnlyList<string> errors = ChaiContentValidator.Validate(data);
+            string joinedErrors = string.Join("; ", errors);
+
+            Assert.That(joinedErrors, Does.Contain("Offline efficiency"));
+            Assert.That(joinedErrors, Does.Contain("Prestige unlock rupees"));
+            Assert.That(joinedErrors, Does.Contain("Duplicate upgrade id"));
+            Assert.That(joinedErrors, Does.Contain("Duplicate location id"));
         }
 
         [Test]
@@ -399,6 +434,39 @@ namespace ChaiEmpire.Tests
             if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
             {
                 Directory.Delete(directory, true);
+            }
+        }
+
+        private static void AssertContentMatches(ChaiContent actual, ChaiContent expected)
+        {
+            Assert.That(actual.OfflineEfficiency, Is.EqualTo(expected.OfflineEfficiency).Within(0.001d));
+            Assert.That(actual.OfflineCapSeconds, Is.EqualTo(expected.OfflineCapSeconds).Within(0.001d));
+            Assert.That(actual.PrestigeUnlockRupees.ToDouble(), Is.EqualTo(expected.PrestigeUnlockRupees.ToDouble()).Within(0.001d));
+            Assert.That(actual.Upgrades.Count, Is.EqualTo(expected.Upgrades.Count));
+            Assert.That(actual.Locations.Count, Is.EqualTo(expected.Locations.Count));
+
+            for (int i = 0; i < expected.Upgrades.Count; i++)
+            {
+                UpgradeDefinition actualUpgrade = actual.Upgrades[i];
+                UpgradeDefinition expectedUpgrade = expected.Upgrades[i];
+                Assert.That(actualUpgrade.Id, Is.EqualTo(expectedUpgrade.Id));
+                Assert.That(actualUpgrade.DisplayName, Is.EqualTo(expectedUpgrade.DisplayName));
+                Assert.That(actualUpgrade.Kind, Is.EqualTo(expectedUpgrade.Kind));
+                Assert.That(actualUpgrade.BaseCost.ToDouble(), Is.EqualTo(expectedUpgrade.BaseCost.ToDouble()).Within(0.001d));
+                Assert.That(actualUpgrade.CostMultiplier, Is.EqualTo(expectedUpgrade.CostMultiplier).Within(0.001d));
+                Assert.That(actualUpgrade.ValuePerLevel, Is.EqualTo(expectedUpgrade.ValuePerLevel).Within(0.001d));
+                Assert.That(actualUpgrade.IsAutomation, Is.EqualTo(expectedUpgrade.IsAutomation));
+            }
+
+            for (int i = 0; i < expected.Locations.Count; i++)
+            {
+                LocationDefinition actualLocation = actual.Locations[i];
+                LocationDefinition expectedLocation = expected.Locations[i];
+                Assert.That(actualLocation.Id, Is.EqualTo(expectedLocation.Id));
+                Assert.That(actualLocation.DisplayName, Is.EqualTo(expectedLocation.DisplayName));
+                Assert.That(actualLocation.UnlockCost.ToDouble(), Is.EqualTo(expectedLocation.UnlockCost.ToDouble()).Within(0.001d));
+                Assert.That(actualLocation.DemandMultiplier, Is.EqualTo(expectedLocation.DemandMultiplier).Within(0.001d));
+                Assert.That(actualLocation.UnlockedByDefault, Is.EqualTo(expectedLocation.UnlockedByDefault));
             }
         }
     }

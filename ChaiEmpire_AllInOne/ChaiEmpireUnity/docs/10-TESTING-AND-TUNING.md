@@ -21,6 +21,8 @@ Current test cases:
 | `Number_formatter_outputs_readable_rupees_suffixes_rates_and_large_fallback` | Compact rupee display, negative suffixes, per-second labels, and high exponent fallback. |
 | `Default_upgrade_catalog_has_unique_valid_progression_values` | Unique upgrade IDs, positive costs/effects, scaling multipliers, and automation flags. |
 | `Default_location_catalog_has_one_start_and_ordered_unlock_progression` | One default location, valid unlock costs, and ordered demand progression. |
+| `Default_content_json_parses_and_matches_built_in_catalog` | Resources JSON parses and matches deterministic built-in defaults. |
+| `Content_validator_rejects_duplicate_ids_and_invalid_values` | Content validation catches duplicate IDs, invalid prestige values, and invalid offline settings. |
 | `Save_round_trip_preserves_v1_and_future_prestige_fields` | JSON save/load for currency, upgrades, locations, and prestige fields. |
 | `Save_round_trip_preserves_high_exponent_big_numbers` | Save/load keeps large `BigDouble` mantissa and exponent values. |
 | `Repository_load_backs_up_malformed_save_and_starts_new_game` | Malformed JSON recovery and corrupt-save backup. |
@@ -41,7 +43,7 @@ Unity.exe -batchmode -projectPath <project> -runTests -testPlatform editmode -te
 Tests should produce:
 
 ```text
-total="18" passed="18" failed="0"
+total="20" passed="20" failed="0"
 ```
 
 ## First 5 Minutes Test
@@ -132,6 +134,7 @@ Important outputs:
 Run this after any economy change:
 
 - Existing edit-mode tests pass.
+- Default content JSON validates with the editor menu.
 - New upgrade cost is positive.
 - New cost multiplier is greater than 1 unless intentionally capped.
 - New passive values do not dwarf all previous content immediately.

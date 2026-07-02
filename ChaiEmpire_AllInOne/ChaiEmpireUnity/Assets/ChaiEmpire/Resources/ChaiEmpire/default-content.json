@@ -1,0 +1,253 @@
+{
+    "offlineEfficiency": 0.75,
+    "offlineCapSeconds": 28800.0,
+    "prestigeUnlockRupees": "1e9",
+    "upgrades": [
+        {
+            "id": "strong-tea",
+            "displayName": "Strong Tea Leaves",
+            "description": "Each kettle tap brews one extra paid cup.",
+            "category": "Brew Craft",
+            "kind": "TapFlat",
+            "baseCost": 10.0,
+            "costMultiplier": 1.55,
+            "valuePerLevel": 1.0,
+            "isAutomation": false,
+            "maxLevel": 0
+        },
+        {
+            "id": "adrak-kick",
+            "displayName": "Adrak Kick",
+            "description": "Ginger aroma makes every cup worth more.",
+            "category": "Brew Craft",
+            "kind": "TapMultiplier",
+            "baseCost": 45.0,
+            "costMultiplier": 1.6,
+            "valuePerLevel": 0.15,
+            "isAutomation": false,
+            "maxLevel": 0
+        },
+        {
+            "id": "elaichi-aroma",
+            "displayName": "Elaichi Aroma",
+            "description": "Cardamom pulls people in from the next lane.",
+            "category": "Brew Craft",
+            "kind": "TapMultiplier",
+            "baseCost": 120.0,
+            "costMultiplier": 1.66,
+            "valuePerLevel": 0.2,
+            "isAutomation": false,
+            "maxLevel": 0
+        },
+        {
+            "id": "helper-boy",
+            "displayName": "Helper Boy",
+            "description": "Auto-serves the queue while you focus on brewing.",
+            "category": "Automation",
+            "kind": "PassiveFlat",
+            "baseCost": 50.0,
+            "costMultiplier": 1.65,
+            "valuePerLevel": 0.5,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "upi-cashier",
+            "displayName": "UPI Cashier",
+            "description": "A QR stand collects payments automatically.",
+            "category": "Automation",
+            "kind": "PassiveFlat",
+            "baseCost": 95.0,
+            "costMultiplier": 1.68,
+            "valuePerLevel": 0.35,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "bulk-kettle",
+            "displayName": "Bulk Kettle",
+            "description": "A larger kettle keeps chai flowing by itself.",
+            "category": "Automation",
+            "kind": "PassiveFlat",
+            "baseCost": 180.0,
+            "costMultiplier": 1.7,
+            "valuePerLevel": 2.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "samosa-counter",
+            "displayName": "Samosa Counter",
+            "description": "Snacks raise average order value through the day.",
+            "category": "Add-ons",
+            "kind": "PassiveFlat",
+            "baseCost": 500.0,
+            "costMultiplier": 1.72,
+            "valuePerLevel": 5.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "bun-maska-tray",
+            "displayName": "Bun Maska Tray",
+            "description": "Buttery side orders keep office crowds lingering.",
+            "category": "Add-ons",
+            "kind": "PassiveFlat",
+            "baseCost": 1250.0,
+            "costMultiplier": 1.75,
+            "valuePerLevel": 12.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "kulhad-stack",
+            "displayName": "Kulhad Stack",
+            "description": "Clay cups make every location feel memorable.",
+            "category": "Add-ons",
+            "kind": "PassiveFlat",
+            "baseCost": 3500.0,
+            "costMultiplier": 1.78,
+            "valuePerLevel": 28.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "painted-signboard",
+            "displayName": "Painted Signboard",
+            "description": "A bright board improves demand everywhere.",
+            "category": "Brand",
+            "kind": "GlobalMultiplier",
+            "baseCost": 1000.0,
+            "costMultiplier": 1.85,
+            "valuePerLevel": 0.1,
+            "isAutomation": false,
+            "maxLevel": 0
+        },
+        {
+            "id": "influencer-reel",
+            "displayName": "Influencer Reel",
+            "description": "A local food reel brings new queues overnight.",
+            "category": "Brand",
+            "kind": "GlobalMultiplier",
+            "baseCost": 5000.0,
+            "costMultiplier": 1.9,
+            "valuePerLevel": 0.35,
+            "isAutomation": false,
+            "maxLevel": 0
+        },
+        {
+            "id": "delivery-partner",
+            "displayName": "Delivery Partner",
+            "description": "Thermos runs send chai to offices nearby.",
+            "category": "Expansion",
+            "kind": "PassiveFlat",
+            "baseCost": 25000.0,
+            "costMultiplier": 1.9,
+            "valuePerLevel": 80.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "franchise-kit",
+            "displayName": "Franchise Kit",
+            "description": "A repeatable stall setup spreads your recipe.",
+            "category": "Expansion",
+            "kind": "PassiveFlat",
+            "baseCost": 250000.0,
+            "costMultiplier": 1.95,
+            "valuePerLevel": 600.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "tea-estate-contract",
+            "displayName": "Tea Estate Contract",
+            "description": "Direct supply stabilizes the national rollout.",
+            "category": "Supply",
+            "kind": "PassiveFlat",
+            "baseCost": 2000000.0,
+            "costMultiplier": 2.0,
+            "valuePerLevel": 3000.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        },
+        {
+            "id": "export-counter",
+            "displayName": "Export Counter",
+            "description": "Packaged masala chai starts leaving the country.",
+            "category": "Late Game",
+            "kind": "PassiveFlat",
+            "baseCost": 20000000.0,
+            "costMultiplier": 2.05,
+            "valuePerLevel": 25000.0,
+            "isAutomation": true,
+            "maxLevel": 0
+        }
+    ],
+    "locations": [
+        {
+            "id": "gali-tapri",
+            "displayName": "Gali Tapri",
+            "description": "Your first loyal lane-side queue.",
+            "unlockCost": 0.0,
+            "demandMultiplier": 1.0,
+            "unlockedByDefault": true
+        },
+        {
+            "id": "bus-stand",
+            "displayName": "Bus Stand",
+            "description": "Morning commuters create steady demand.",
+            "unlockCost": 250.0,
+            "demandMultiplier": 1.25,
+            "unlockedByDefault": false
+        },
+        {
+            "id": "railway-platform",
+            "displayName": "Railway Platform",
+            "description": "Peak-hour trains turn chai into a rhythm game.",
+            "unlockCost": 2000.0,
+            "demandMultiplier": 1.65,
+            "unlockedByDefault": false
+        },
+        {
+            "id": "college-canteen",
+            "displayName": "College Canteen",
+            "description": "Exam nights and gossip tables stretch demand.",
+            "unlockCost": 12000.0,
+            "demandMultiplier": 2.0,
+            "unlockedByDefault": false
+        },
+        {
+            "id": "it-park",
+            "displayName": "IT Park",
+            "description": "Sprint planning runs on cutting chai.",
+            "unlockCost": 80000.0,
+            "demandMultiplier": 2.75,
+            "unlockedByDefault": false
+        },
+        {
+            "id": "highway-dhaba",
+            "displayName": "Highway Dhaba",
+            "description": "Truckers and families keep the stove hot.",
+            "unlockCost": 500000.0,
+            "demandMultiplier": 3.7,
+            "unlockedByDefault": false
+        },
+        {
+            "id": "mall-kiosk",
+            "displayName": "Mall Kiosk",
+            "description": "Premium cups meet weekend footfall.",
+            "unlockCost": 5000000.0,
+            "demandMultiplier": 5.2,
+            "unlockedByDefault": false
+        },
+        {
+            "id": "airport-lounge",
+            "displayName": "Airport Lounge",
+            "description": "Your brand is now national enough to prestige later.",
+            "unlockCost": 100000000.0,
+            "demandMultiplier": 8.0,
+            "unlockedByDefault": false
+        }
+    ]
+}
