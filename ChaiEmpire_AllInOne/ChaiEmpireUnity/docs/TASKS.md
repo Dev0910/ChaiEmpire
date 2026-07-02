@@ -17,14 +17,14 @@ This tracker is the source of truth for roadmap completion. Do not mark a task c
   - [x] Add or update relevant tests.
   - [x] Run play check and inspect logs.
   - [x] Update docs, commit, and push.
-- [ ] Early balance pass
+- [x] Early balance pass
   - [x] Add reset-save option in settings.
   - [x] Add number formatter tests.
   - [x] Add content validation tests.
   - [x] Improve early balance based on first 5-minute playtest targets.
   - [x] Make offline reward more visible, ideally in a modal.
   - [x] Run tests/play checks and inspect logs.
-  - [ ] Update docs, commit, and push.
+  - [x] Update docs, commit, and push.
 
 ## Phase 2: Visual And Audio Identity
 
