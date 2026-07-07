@@ -74,8 +74,11 @@ ChaiEmpire.Editor.ChaiEmpireSceneBuilder.Build
 The scene builder:
 
 - Creates an empty scene.
-- Adds `Main Camera`.
+- Adds `Main Camera` with `AudioListener`.
 - Adds `Chai Empire App` with `ChaiGamePresenter`.
+- Builds and saves the persistent inspectable UI hierarchy under `Chai Empire App`.
+- Builds and saves a `Scene Preview Chai Stall` world-space preview for Scene View inspection.
+- Generates the reusable `ChaiEmpire/chai-circle` sprite resource used by procedural art shapes.
 - Saves to `Assets/ChaiEmpire/Scenes/ChaiEmpire.unity`.
 - Sets that scene in build settings.
 - Sets product metadata and portrait orientation.
@@ -86,10 +89,14 @@ The generated scene should contain:
 
 | Object | Required component |
 | --- | --- |
-| `Main Camera` | `Camera`, tagged `MainCamera` |
+| `Main Camera` | `Camera`, `AudioListener`, tagged `MainCamera` |
 | `Chai Empire App` | `ChaiGamePresenter` |
+| `Chai Empire App/Chai Empire Canvas/SafeAreaRoot/MainScrollView/Viewport/ContentColumn` | Saved portrait UI content hierarchy |
+| `ContentColumn/Stall Art` | Saved procedural kettle, stove, steam, queue, UPI QR, and backdrop variant objects |
+| `SafeAreaRoot/ModalLayer` | Saved modal layer with offline reward modal |
+| `Chai Empire App/Scene Preview Chai Stall` | World-space Scene View preview of the chai stall |
 
-The canvas and UI are created at runtime, not stored in the scene.
+The generated canvas and named UI/art hierarchy are stored in the scene so the result is inspectable before Play. At runtime, `ChaiGamePresenter` rebuilds the same hierarchy under `Chai Empire App` and binds it to live game state.
 
 ## Android Build
 

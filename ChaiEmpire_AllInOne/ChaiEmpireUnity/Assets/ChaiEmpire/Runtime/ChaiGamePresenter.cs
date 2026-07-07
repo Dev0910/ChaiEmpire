@@ -9,6 +9,12 @@ namespace ChaiEmpire
 {
     public sealed class ChaiGamePresenter : MonoBehaviour
     {
+        private const string CanvasName = "Chai Empire Canvas";
+        private const string SafeAreaRootName = "SafeAreaRoot";
+        private const string MainScrollViewName = "MainScrollView";
+        private const string ViewportName = "Viewport";
+        private const string ContentColumnName = "ContentColumn";
+        private const string ModalLayerName = "ModalLayer";
         private const float ResetConfirmSeconds = 6f;
         private const float PrestigeConfirmSeconds = 8f;
 
@@ -111,6 +117,7 @@ namespace ChaiEmpire
             LoadResult loadResult = ChaiSaveRepository.LoadOrCreate(content);
             game = ChaiGame.FromState(content, loadResult.State);
 
+            ClearGeneratedUi();
             BuildUi();
 
             if (loadResult.HasOfflineReward)
@@ -199,13 +206,17 @@ namespace ChaiEmpire
         private void BuildUi()
         {
             EnsureEventSystem();
+            ResetGeneratedUiReferences();
 
-            Canvas canvas = CreateCanvas();
+            Canvas canvas = CreateCanvas(transform);
             audioSource = canvas.gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
             audioSource.spatialBlend = 0;
 
-            GameObject scrollObject = CreateChild("Scroll View", canvas.transform);
+            GameObject safeAreaRoot = CreateChild(SafeAreaRootName, canvas.transform);
+            StretchToParent(safeAreaRoot.GetComponent<RectTransform>());
+
+            GameObject scrollObject = CreateChild(MainScrollViewName, safeAreaRoot.transform);
             RectTransform scrollRect = scrollObject.GetComponent<RectTransform>();
             scrollRect.anchorMin = Vector2.zero;
             scrollRect.anchorMax = Vector2.one;
@@ -220,7 +231,7 @@ namespace ChaiEmpire
             scroll.movementType = ScrollRect.MovementType.Clamped;
             scroll.scrollSensitivity = 32;
 
-            GameObject viewport = CreateChild("Viewport", scrollObject.transform);
+            GameObject viewport = CreateChild(ViewportName, scrollObject.transform);
             RectTransform viewportRect = viewport.GetComponent<RectTransform>();
             viewportRect.anchorMin = Vector2.zero;
             viewportRect.anchorMax = Vector2.one;
@@ -228,7 +239,7 @@ namespace ChaiEmpire
             viewportRect.offsetMax = Vector2.zero;
             viewport.AddComponent<RectMask2D>();
 
-            GameObject contentObject = CreateChild("Content", viewport.transform);
+            GameObject contentObject = CreateChild(ContentColumnName, viewport.transform);
             RectTransform contentRect = contentObject.GetComponent<RectTransform>();
             contentRect.anchorMin = new Vector2(0, 1);
             contentRect.anchorMax = new Vector2(1, 1);
@@ -260,12 +271,55 @@ namespace ChaiEmpire
             BuildLocationList(contentObject.transform);
             BuildPrestige(contentObject.transform);
             BuildSettings(contentObject.transform);
-            BuildOfflineRewardModal(canvas.transform);
+
+            GameObject modalLayer = CreateChild(ModalLayerName, safeAreaRoot.transform);
+            StretchToParent(modalLayer.GetComponent<RectTransform>());
+            modalLayer.transform.SetAsLastSibling();
+            BuildOfflineRewardModal(modalLayer.transform);
         }
 
-        private Canvas CreateCanvas()
+        public void RebuildPersistentPreview()
         {
-            GameObject canvasObject = new GameObject("Chai Empire Canvas");
+            content = ChaiContent.CreateDefault();
+            ClearGeneratedUi();
+            BuildUi();
+            Canvas.ForceUpdateCanvases();
+        }
+
+        private void ResetGeneratedUiReferences()
+        {
+            upgradeRows.Clear();
+            locationRows.Clear();
+            prestigeSkillRows.Clear();
+            steamWisps.Clear();
+        }
+
+        private void ClearGeneratedUi()
+        {
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = transform.GetChild(i);
+                if (child.name != CanvasName)
+                {
+                    continue;
+                }
+
+                if (Application.isPlaying)
+                {
+                    Destroy(child.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(child.gameObject);
+                }
+            }
+        }
+
+        private Canvas CreateCanvas(Transform parent)
+        {
+            GameObject canvasObject = new GameObject(CanvasName);
+            canvasObject.transform.SetParent(parent, false);
+
             Canvas canvas = canvasObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
@@ -278,6 +332,13 @@ namespace ChaiEmpire
 
             Image background = canvasObject.AddComponent<Image>();
             background.color = Background;
+
+            RectTransform rect = canvasObject.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                StretchToParent(rect);
+            }
+
             return canvas;
         }
 
@@ -334,6 +395,40 @@ namespace ChaiEmpire
             CreateSteamWisp("Steam Wisp A", art.transform, new Vector2(-52, 214), new Vector2(34, 78), 0f);
             CreateSteamWisp("Steam Wisp B", art.transform, new Vector2(6, 224), new Vector2(28, 88), 0.85f);
             CreateSteamWisp("Steam Wisp C", art.transform, new Vector2(62, 210), new Vector2(30, 72), 1.7f);
+            CreateLocationBackdropVariants(art.transform);
+        }
+
+        private void CreateLocationBackdropVariants(Transform parent)
+        {
+            GameObject variants = CreateChild("Location Backdrop Variants", parent);
+            RectTransform rect = variants.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(1, 1);
+            rect.anchorMax = new Vector2(1, 1);
+            rect.pivot = new Vector2(1, 1);
+            rect.anchoredPosition = new Vector2(-22, -18);
+            rect.sizeDelta = new Vector2(330, 44);
+
+            HorizontalLayoutGroup layout = variants.AddComponent<HorizontalLayoutGroup>();
+            layout.spacing = 6;
+            layout.childControlWidth = false;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+
+            CreatePaletteSwatch(variants.transform, "Gali Tapri");
+            CreatePaletteSwatch(variants.transform, "Bus Stand");
+            CreatePaletteSwatch(variants.transform, "Railway Platform");
+            CreatePaletteSwatch(variants.transform, "College Canteen");
+            CreatePaletteSwatch(variants.transform, "IT Park");
+            CreatePaletteSwatch(variants.transform, "Airport Lounge");
+        }
+
+        private void CreatePaletteSwatch(Transform parent, string displayName)
+        {
+            string locationId = displayName.ToLowerInvariant().Replace(" ", "-");
+            LocationVisualPalette palette = GetLocationVisualPalette(locationId);
+            Image swatch = CreateArtShape("Backdrop Variant - " + displayName, parent, Vector2.zero, new Vector2(44, 44), palette.Backdrop, null, 0);
+            swatch.raycastTarget = false;
         }
 
         private void CreateCustomerQueue(Transform parent)
@@ -577,7 +672,7 @@ namespace ChaiEmpire
 
         private void BuildPrestige(Transform parent)
         {
-            GameObject section = CreatePanel("Prestige", parent, new Color(0.96f, 0.92f, 0.97f), 1240);
+            GameObject section = CreatePanel("Prestige", parent, new Color(0.96f, 0.92f, 0.97f), 1640);
             VerticalLayoutGroup layout = section.AddComponent<VerticalLayoutGroup>();
             layout.padding = new RectOffset(22, 22, 18, 18);
             layout.spacing = 8;
@@ -596,7 +691,7 @@ namespace ChaiEmpire
             foreach (PrestigeSkillDefinition skill in ChaiPrestigeSkills.All)
             {
                 PrestigeSkillDefinition captured = skill;
-                Button button = CreateButton(skill.Id, section.transform, skill.DisplayName, 21, Teal, 86);
+                Button button = CreateButton(skill.Id, section.transform, skill.DisplayName, 20, Teal, 116);
                 Text label = button.GetComponentInChildren<Text>();
                 button.onClick.AddListener(() => HandlePrestigeSkill(captured));
                 prestigeSkillRows.Add(new PrestigeSkillRow(captured, button, label));
@@ -1242,7 +1337,11 @@ namespace ChaiEmpire
         {
             if (hapticsEnabled)
             {
+#if UNITY_EDITOR
+                return;
+#else
                 Handheld.Vibrate();
+#endif
             }
         }
 
@@ -1497,6 +1596,7 @@ namespace ChaiEmpire
         private static Button CreateButton(string name, Transform parent, string text, int fontSize, Color color, float height)
         {
             GameObject buttonObject = CreateChild(name, parent);
+            StretchHorizontally(buttonObject.GetComponent<RectTransform>(), height);
             Image image = buttonObject.AddComponent<Image>();
             image.color = color;
             Button button = buttonObject.AddComponent<Button>();
@@ -1525,6 +1625,7 @@ namespace ChaiEmpire
         private static Text CreateText(string name, Transform parent, string value, int fontSize, Color color, TextAnchor alignment)
         {
             GameObject textObject = CreateChild(name, parent);
+            StretchHorizontally(textObject.GetComponent<RectTransform>(), Mathf.Max(36, fontSize + 14));
             Text text = textObject.AddComponent<Text>();
             text.text = value;
             text.font = GetFont();
@@ -1545,6 +1646,21 @@ namespace ChaiEmpire
             child.transform.SetParent(parent, false);
             child.AddComponent<RectTransform>();
             return child;
+        }
+
+        private static void StretchToParent(RectTransform rect)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+        }
+
+        private static void StretchHorizontally(RectTransform rect, float height)
+        {
+            rect.anchorMin = new Vector2(0, 0.5f);
+            rect.anchorMax = new Vector2(1, 0.5f);
+            rect.sizeDelta = new Vector2(0, height);
         }
 
         private static void SetButtonColor(Button button, Color color)
@@ -1636,6 +1752,12 @@ namespace ChaiEmpire
 
         private static Sprite GetCircleSprite()
         {
+            if (circleSprite != null)
+            {
+                return circleSprite;
+            }
+
+            circleSprite = Resources.Load<Sprite>("ChaiEmpire/chai-circle");
             if (circleSprite != null)
             {
                 return circleSprite;

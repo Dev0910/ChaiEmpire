@@ -34,15 +34,15 @@ Current implemented UI:
 
 | Area | Current implementation |
 | --- | --- |
-| UI creation | Runtime-created by `ChaiGamePresenter`. |
+| UI creation | Saved by `ChaiEmpireSceneBuilder`, then rebuilt and bound by `ChaiGamePresenter` at runtime. |
 | Canvas mode | Screen Space Overlay. |
 | Scaling | `CanvasScaler` with reference resolution `1080 x 1920`. |
 | Layout | One scrollable portrait screen. |
-| Section order | Header, stats, tutorial guide when needed, actions, upgrades, locations, prestige preview. |
+| Section order | Header, stall art, stats, tutorial guide when needed, actions, events, optional rewards, privacy/services, upgrades, locations, prestige, settings. |
 | Refresh | Dynamic UI refresh every `0.2` seconds. |
 | Save | Save every `10` seconds and on pause/quit. |
 
-The HTML wireframes preserve this baseline so the first production UI can replace the runtime-created prototype without changing the economy model.
+The current scene now preserves this hierarchy for editor inspection while keeping runtime binding in the presenter, so future production UI work can split the same structure into smaller view classes without changing the economy model.
 
 ## Frame Inventory
 
@@ -59,7 +59,7 @@ The HTML wireframes preserve this baseline so the first production UI can replac
 
 ## Unity Scene Hierarchy
 
-Recommended production hierarchy:
+Current generated hierarchy:
 
 ```text
 ChaiEmpireScene
@@ -70,20 +70,24 @@ ChaiEmpireScene
         MainScrollView
           Viewport
             ContentColumn
-              HeaderPanel
-              StatsGrid
-              TutorialPanel
-              ActionPanel
-              UpgradeSection
-              LocationSection
-              PrestigePreviewPanel
-        ToastStatus
+              Header
+              Stall Art
+              Stats
+              Tutorial
+              Actions
+              Events
+              Optional Rewards
+              Privacy And Services
+              Upgrades
+              Locations
+              Prestige
+              Settings
         ModalLayer
           OfflineRewardModal
-          UpgradeDetailModal
+    Scene Preview Chai Stall
 ```
 
-Current scene can keep the same `Chai Empire App` root and `ChaiGamePresenter` during prototype work. Production work should split UI responsibilities into smaller view classes.
+The scene keeps the same `Chai Empire App` root and `ChaiGamePresenter` during prototype work. `Scene Preview Chai Stall` exists only to make the saved work visible in Scene View; the portrait Canvas remains the runtime UI. Production work should split UI responsibilities into smaller view classes using this saved hierarchy as the migration target.
 
 ## Recommended View Classes
 

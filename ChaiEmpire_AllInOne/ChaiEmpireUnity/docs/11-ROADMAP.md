@@ -7,7 +7,8 @@ This roadmap organizes Chai Empire into practical development phases.
 Already implemented:
 
 - Unity 6 Android project.
-- Portrait runtime UI.
+- Portrait UI with a persistent inspectable Unity hierarchy.
+- Saved chai stall visuals: kettle, stove, steam, customer queue, UPI QR prop, and location backdrop variants.
 - Manual tapping.
 - Queue serving.
 - Upgrade purchases.
@@ -22,6 +23,7 @@ Already implemented:
 - Optional live events.
 - Optional monetization-safe rewards and cosmetics.
 - Local production-readiness services for privacy, consent, achievements, analytics, crash state, and cloud-save payloads.
+- External SDK adapters for ads, analytics, crash reporting, cloud save, billing, Play Games, and Play Integrity are deferred until real SDK configuration exists.
 - Edit-mode tests.
 - Android APK build method.
 
